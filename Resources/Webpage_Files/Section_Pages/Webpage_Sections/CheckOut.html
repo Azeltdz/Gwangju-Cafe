@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <head>
+
+        <title>Gwangju Café — Check Out</title>
+
+        <link rel="stylesheet" href="../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital@1&display=swap" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <nav>
+            <div class="brand_container">
+                <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+
+                <div class="links_container">
+                    <a class="back_link" id="checkoutBackBtn" href="#">Back</a><a>∙</a>
+                    <a class="home_link" href="Home.html">Home</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner">
+                <p>Check Out</p>
+            </div>
+
+            <div class="checkout_container" id="checkout_container">
+                <div class="order_summary">
+                        <div id="orderItems"></div><hr>
+
+                        <div class="checkout_total">
+                            <div class="row">
+                                <span class="label">Subtotal:</span>
+                                <span class="value">P <span id="itemsTotal">0.00</span></span>
+                            </div>
+
+                            <div class="row">
+                                <span class="label">Shipping Fee:</span>
+                                <span class="value">P <span id="shippingFee">0.00</span></span>
+                            </div>
+
+                            <div class="row">
+                                <span class="label">Total:</span>
+                                <span class="value">P <span id="finalTotal">0.00</span></span>
+                            </div>
+                        </div>
+                </div>
+
+                <div class="checkout_details"></div>
+                    <form id="checkoutForm">
+                        <div class="place_order_button">
+                            <button type="submit">Place Order</button>
+                        </div>
+                    </form>
+            </div>
+
+            <div id="orderHistory"></div>
+        </div>
+
+        <div class="info_container">    
+            <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+
+                <div class="infolinks_container">
+                    <a class="about_link" href="About.html">About Us</a><a>∙</a>
+                    <a class="contacts_link" href="Contacts.html">Contacts</a><a>∙</a>
+                    <a class="contacts_link">Social Impact</a><a>∙</a>
+                    <a class="home_link" href="Home.html">Promotions</a>
+                    <button class="logout_button" onclick="logout()">Log Out</button>
+                </div>
+        </div>
+
+        <script src="../Webpage_Functions/Profile.js"></script>
+        <script src="../Webpage_Functions/CheckOut.js"></script>
+    </body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gwangju Café — Profile</title>
+
+        <link rel="stylesheet" href="../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital@1&display=swap" rel="stylesheet">
+    </head>
+    
+    <body onload="initProfile()">
+        <nav>
+            <div class="brand_container">    
+                <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+                <div class="links_container">
+                    <a class="home_link" href="Home.html">Home</a><a>∙</a>
+                    <a class="orderhistory_link" href="OrderHistory.html">Order History</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner"><p>Profile</p></div>
+
+            <div class="profile_container" id="profile_container">
+                <p>Loading profile...</p>
+            </div>
+        </div>
+
+        <div class="info_container">    
+            <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+
+                <div class="infolinks_container">
+                    <a class="about_link" href="About.html">About Us</a><a>∙</a>
+                    <a class="contacts_link" href="Contacts.html">Contacts</a><a>∙</a>
+                    <a class="contacts_link">Social Impact</a><a>∙</a>
+                    <a class="home_link" href="Home.html">Promotions</a>
+                    <button class="logout_button" onclick="logout()">Log Out</button>
+                </div>
+        </div>
+
+        <script src="../Webpage_Functions/Profile.js"></script>
+    </body>
+</html>

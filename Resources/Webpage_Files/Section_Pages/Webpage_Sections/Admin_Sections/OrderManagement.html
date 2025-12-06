@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gwangju Café — Order Management</title>
+
+        <link rel="stylesheet" href="../../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital@1&display=swap" rel="stylesheet">
+
+        <style>
+            body { background: linear-gradient(to bottom, rgb(180, 220, 255), aliceblue, #ffffff); }
+            select { padding: 8px; border-radius: 10px; font-size: 2vh; font-family: 'Intro Rust'; font-weight: bold; }
+        </style>
+    </head>
+
+    <body onload="loadAllCustomerOrders()">
+        <nav>
+            <div class="brand_container">
+                <img src="../../../../Webpage_Images_&_Icons/Interface_Images/Portal_Logo.png">
+
+                <div class="links_container">
+                    <a class="profile_link" href="AdminProfile.html">Profile</a><a>∙</a>
+                    <a class="completed_link" href="CompletedOrders.html">Fulfilled</a><a>∙</a>
+                    <a class="inventory_link" href="Inventory.html">Inventory</a><a>∙</a>
+                    <a class="dashboard_link" href="AdminDashboard.html">Dashboard</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner">
+                <p>Order Management</p>
+            </div>
+
+            <div class="customer_order_container" id="customer_order_container">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <div class="info_container">
+            <div style="margin: 0 auto;" class="infolinks_container">
+                <button class="logout_button" onclick="admin_logout()">Log Out</button>
+            </div>
+        </div>
+
+        <script src="../../Webpage_Functions/OrderManagement.js"></script>
+        <script src="../../Webpage_Functions/AdminProfile.js"></script>
+    </body>
+</html>

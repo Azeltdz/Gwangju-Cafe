@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <head>
+
+        <title>Gwangju Café — Sign Up</title>
+
+        <link rel="stylesheet" href="../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital@1&display=swap" rel="stylesheet">
+    </head>
+
+    <body>
+        <nav>
+            <div class="brand_container">
+                <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+
+                <div class="links_container">
+                    <a class="back_link" href="Cart.html">Back</a><a>∙</a>
+                    <a class="home_link" href="Home.html">Home</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner">
+                <p>Address</p>
+            </div>
+
+            <div class="address_container" id="checkout_container">
+                <form id="addressForm">
+                    <label for="firstname">First Name:</label>
+                    <input type="text" id="firstName" required>
+
+                    <label for="lastname">Last Name:</label>
+                    <input type="text" id="lastName" required>
+
+                    <label for="houseNumber">House Number:</label>
+                    <input type="text" id="houseNumber" required>
+
+                    <label for="street">Street Address:</label>
+                    <input type="text" id="street" required>
+
+                    <label for="barangay">Barangay: ∙ Only delivers around San Luis, Batangas ∙</label>
+                    <select class="brgy_select" id="barangay" required>
+                        <option value="">-- Select Barangay --</option>
+                            <option>Abiacao</option>
+                            <option>Bagong Tubig</option>
+                            <option>Balagtasin</option>
+                            <option>Balite</option>
+                            <option>Banoyo</option>
+                            <option>Boboy</option>
+                            <option>Bonliw</option>
+                            <option>Calumpang West</option>
+                            <option>Calumpang East</option>
+                            <option>Dulangan</option>
+                            <option>Durungao</option>
+                            <option>Locloc</option>
+                            <option>Luya</option>
+                            <option>Mahabang Parang</option>
+                            <option>Manggahan</option>
+                            <option>Muzon</option>
+                            <option>San Antonio</option>
+                            <option>San Isidro</option>
+                            <option>San Jose</option>
+                            <option>San Martin</option>
+                            <option>Santa Monica</option>
+                            <option>Taliba</option>
+                            <option>Talon</option>
+                            <option>Tejero</option>
+                            <option>Tungal</option>
+                            <option>Poblacion</option>
+                    </select>
+                    
+                    <div class="address_done">
+                        <button type="submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="../Webpage_Functions/AddressSignup.js"></script>
+        <script src="../Webpage_Functions/Profile.js"></script>
+        <script src="../Webpage_Functions/CheckOut.js"></script>
+    </body>
+</html>
