@@ -1,13 +1,36 @@
-document.getElementById("addressForm").addEventListener("submit", function(e) {
+document.getElementById("addressForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    const currentUser = localStorage.getItem("currentUser");
+    let currentUser = localStorage.getItem("currentUser");
     const users = JSON.parse(localStorage.getItem("users")) || {};
-    const user = users[currentUser];
 
+    if (!currentUser || currentUser === "undefined" || !(currentUser in users)) {
+        console.warn("Current user missing. Attempting recovery…");
+
+        const userKeys = Object.keys(users);
+
+        if (userKeys.length > 0) {
+            currentUser = userKeys[userKeys.length - 1];
+            localStorage.setItem("currentUser", currentUser);
+            console.log("Recovered currentUser:", currentUser);
+        } else {
+            alert("Fatal error: No user account exists in the system.");
+            return;
+        }
+    }
+
+    let user = users[currentUser];
     if (!user) {
-        alert("Error: User not found.");
-        return;
+        console.warn("User object missing — rebuilding placeholder.");
+        user = {
+            username: currentUser,
+            email: "",
+            password: "",
+            role: "user",
+            address: {},
+            orders: []
+        };
+        users[currentUser] = user;
     }
 
     const firstName = document.getElementById("firstName").value.trim();
@@ -26,6 +49,6 @@ document.getElementById("addressForm").addEventListener("submit", function(e) {
 
     users[currentUser] = user;
     localStorage.setItem("users", JSON.stringify(users));
-
+    localStorage.setItem("currentUser", currentUser); 
     window.location.href = "Home.html";
 });

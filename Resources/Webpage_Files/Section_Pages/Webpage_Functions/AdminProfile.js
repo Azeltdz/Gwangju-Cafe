@@ -44,7 +44,7 @@ function initAdminProfile() {
 
     container.innerHTML = `
         <div class="profile_box">    
-            <h3>ADMIN PROFILE</h3>
+            <h3>Admin Profile Information</h3>
             <hr>
 
             <p><strong>Username:</strong> ${escapeHtml(adminUser.username || adminKey)}</p>

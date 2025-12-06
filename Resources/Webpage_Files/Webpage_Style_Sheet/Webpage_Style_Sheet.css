@@ -642,7 +642,7 @@ label {
     border-radius: 10px;
 }
 
-.profile_box { font-family: monospace; }
+.profile_box { font-family: Verdana; }
 
 .profile_details {
     font-size: 2.5vh;

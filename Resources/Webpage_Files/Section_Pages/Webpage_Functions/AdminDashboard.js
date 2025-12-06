@@ -26,7 +26,7 @@ function drawLowStockChart(inventory) {
             datasets: [{
                 label: "Stock",
                 data: lowest15.map(i => i.stock),
-                backgroundColor: "#ff0000ff"
+                backgroundColor: "#382719ff"
             }]
         },
         options: { indexAxis: "y" }
@@ -63,7 +63,7 @@ function drawTopStockChart(inventory) {
             datasets: [{
                 label: "Stock",
                 data: top15.map(i => i.stock),
-                backgroundColor: "#29f800ff"
+                backgroundColor: "#382719ff"
             }]
         },
         options: { indexAxis: "y" }

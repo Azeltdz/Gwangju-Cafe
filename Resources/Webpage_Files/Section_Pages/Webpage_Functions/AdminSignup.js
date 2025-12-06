@@ -4,7 +4,7 @@
     if (!db["admin"]) {
         db["admin"] = {
             email: "admingwangju@gmail.com",
-            username: "admin_gwangju",
+            username: "admin_at_gwangju",
             password: "admin123",
             role: "admin",
             orders: []

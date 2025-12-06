@@ -41,7 +41,7 @@ function displayOrders(username) {
         const realIndex = user.orders.length - 1 - index;
 
         const itemsHtml = order.items.map(i =>
-            `${i.name} x ${i.quantity} — ₱${(i.price * i.quantity).toFixed(2)}`
+            `${i.name} x ${i.quantity} — P ${(i.price * i.quantity).toFixed(2)}`
         ).join("<br>");
 
         const card = document.createElement("div");
@@ -52,9 +52,9 @@ function displayOrders(username) {
 
             <div>${itemsHtml}</div>
 
-            <p><strong>Items Total:</strong> ₱${order.total}</p>
-            <p><strong>Shipping Fee:</strong> ₱${order.shippingFee}</p>
-            <p><strong>Final Total:</strong> ₱${order.finalTotal}</p>
+            <p><strong>Items Total:</strong> P ${order.total}</p>
+            <p><strong>Shipping Fee:</strong> P ${order.shippingFee}</p>
+            <p><strong>Final Total:</strong> P ${order.finalTotal}</p>
 
             <div class="order_status">
                 <strong>Status: 
