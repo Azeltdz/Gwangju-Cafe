@@ -200,7 +200,7 @@ function showReceiptPopup(order) {
 
     document.getElementById("closeReceipt").onclick = () => {
         bg.remove();
-        window.location.href = "OrderHistory.html";
+        window.location.href = "PendingOrders.html";
     };
 }
 

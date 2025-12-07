@@ -1,0 +1,115 @@
+function daysUntilExpired(dateStr) {
+    const now = new Date();
+    const exp = new Date(dateStr);
+    const diff = exp - now;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function loadDashboard() {
+    const inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+
+    const totalItems = inventory.length;
+    const totalStock = inventory.reduce((sum, item) => sum + item.stock, 0);
+    const lowStock = inventory.filter(item => item.stock <= 10);
+    const totalValue = inventory.reduce((sum, item) => sum + (item.stock * item.price), 0);
+
+    const expired = inventory.filter(item =>
+        item.expirationDate && daysUntilExpired(item.expirationDate) <= 0
+    );
+
+    const expiringSoon = inventory.filter(item => {
+        if (!item.expirationDate) return false;
+        const days = daysUntilExpired(item.expirationDate);
+        return days > 0 && days <= 7;
+    });
+
+    document.querySelector("#totalItemsCard p").textContent = totalItems;
+    document.querySelector("#totalStockCard p").textContent = totalStock;
+    document.querySelector("#lowStockCard p").textContent = lowStock.length;
+    document.querySelector("#totalValueCard p").textContent = "P " + totalValue;
+    document.querySelector("#expirationCard p").textContent =
+        `Expired: ${expired.length} ∙ Soon: ${expiringSoon.length}`;
+
+    drawCategoryChart(inventory);
+    drawTopStockChart(inventory);
+    drawLowStockChart(inventory);
+    drawValueChart(inventory);
+}
+
+function drawLowStockChart(inventory) {
+    const lowest15 = [...inventory].sort((a, b) => a.stock - b.stock).slice(0, 15);
+
+    new Chart(document.getElementById("lowStockChart"), {
+        type: "bar",
+        data: {
+            labels: lowest15.map(i => `${i.name} (${i.size})`),
+            datasets: [{
+                label: "Stock",
+                data: lowest15.map(i => i.stock),
+                backgroundColor: "#382719ff"
+            }]
+        },
+        options: { indexAxis: "y" }
+    });
+}
+
+function drawCategoryChart(inventory) {
+    const categories = {};
+
+    inventory.forEach(item => {
+        if (!categories[item.category]) categories[item.category] = 0;
+        categories[item.category]++;
+    });
+
+    new Chart(document.getElementById("categoryChart"), {
+        type: "doughnut",
+        data: {
+            labels: Object.keys(categories),
+            datasets: [{
+                data: Object.values(categories),
+                backgroundColor: ["#382719ff", "#c0af82ff", "#8b330fff", "#fdbe5eff", "#b6b3adff", "#ffe922ff"]
+            }]
+        }
+    });
+}
+
+function drawTopStockChart(inventory) {
+    const top15 = [...inventory].sort((a, b) => b.stock - a.stock).slice(0, 15);
+
+    new Chart(document.getElementById("topStockChart"), {
+        type: "bar",
+        data: {
+            labels: top15.map(i => `${i.name} (${i.size})`),
+            datasets: [{
+                label: "Stock",
+                data: top15.map(i => i.stock),
+                backgroundColor: "#382719ff"
+            }]
+        },
+        options: { indexAxis: "y" }
+    });
+}
+
+function drawValueChart(inventory) {
+    const valueMap = {};
+
+    inventory.forEach(item => {
+        if (!valueMap[item.category]) valueMap[item.category] = 0;
+        valueMap[item.category] += item.stock * item.price;
+    });
+
+    new Chart(document.getElementById("valueChart"), {
+        type: "bar",
+        data: {
+            labels: Object.keys(valueMap),
+            datasets: [{
+                label: "₱ Value",
+                data: Object.values(valueMap),
+                backgroundColor: ["#382719ff", "#c0af82ff", "#8b330fff", "#fdbe5eff", "#b6b3adff", "#ffe922ff"]
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}

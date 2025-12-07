@@ -2,8 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentUser = localStorage.getItem("currentUser");
     let users = JSON.parse(localStorage.getItem("users")) || {};
-
-    // --- FIX 1: Recover account if missing (same fix as signup flow) ---
+    
     if (!currentUser || !(currentUser in users)) {
         const keys = Object.keys(users);
         if (keys.length > 0) {

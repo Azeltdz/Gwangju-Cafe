@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gwangju Café — Sales Report</title>
+
+        <link rel="stylesheet" href="../../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+    </head>
+
+    <style>
+        body {background: linear-gradient(to bottom, rgb(180, 220, 255), aliceblue, #ffffff)};
+    </style>
+
+    <body>
+        <nav>
+            <div class="brand_container">    
+                <img src="../../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+                <div class="links_container">
+                    <a class="profile_link" href="AdminProfile.html">Profile</a><a>∙</a>
+                    <a class="ordermanagement_link" href="OrderManagement.html">Queue</a><a>∙</a>
+                    <a class="completed_link" href="CompletedOrders.html">Fulfilled</a><a>∙</a>
+                    <a class="inventory_link" href="Inventory.html">Inventory</a><a>∙</a>
+                    <a class="dashboard_link" href="SalesDashboard.html">Sales Dashboard</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner"><p>Sales Report</p></div>
+
+            <div class="sales_container" id="sales_table">
+                <p>Loading sales...</p>
+            </div>
+        </div>
+
+        <div class="info_container">    
+                <img src="../../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+
+                <div class="infolinks_container">
+                    <a class="about_link">About Us</a><a>∙</a>
+                    <a class="contacts_link">Contacts</a><a>∙</a>
+                    <button class="logout_button" onclick="admin_logout()">Log Out</button>
+                </div>
+        </div>
+
+        <script src="../../Webpage_Functions/SalesReport.js"></script>
+        <script src="../../Webpage_Functions/AdminProfile.js"></script>
+    </body>
+</html>

@@ -20,22 +20,19 @@ function initHistory() {
     }
 
     container.innerHTML = `<div id="orders_list"></div>`;
-    displayOrders(currentUser);
+    displayOrders(user);
 }
 
-function displayOrders(username) {
-    const users = JSON.parse(localStorage.getItem("users")) || {};
-    const user = users[username];
-
+function displayOrders(user) {
     const orders = user.orders ? [...user.orders].reverse() : [];
-    const ordersList = document.getElementById("orders_list");
+    const list = document.getElementById("orders_list");
 
     if (orders.length === 0) {
-        ordersList.innerHTML = "<p>No previous orders.</p>";
+        list.innerHTML = "<p>No previous orders.</p>";
         return;
     }
 
-    ordersList.innerHTML = "";
+    list.innerHTML = "";
 
     orders.forEach((order, index) => {
         const realIndex = user.orders.length - 1 - index;
@@ -47,6 +44,24 @@ function displayOrders(username) {
         const card = document.createElement("div");
         card.className = "order_card";
 
+        let actionHtml = "";
+
+        if (order.status === "Pending" || order.status === "Preparing" || order.status === "Out for Delivery") {
+            actionHtml = `<span style="color:gray;">Pending – cannot rate yet</span>`;
+        }
+
+        else if (order.status === "Completed") {
+            actionHtml = `
+                <button class="received_button" onclick="markReceived(${realIndex})">
+                    Order Received
+                </button>
+            `;
+        }
+
+        else if (order.status === "Received") {
+            actionHtml = renderStarsInteractive(realIndex, order.rating || 0);
+        }
+
         card.innerHTML = `
             <p><strong>Order Date:</strong> ${order.date}</p>
 
@@ -56,45 +71,29 @@ function displayOrders(username) {
             <p><strong>Shipping Fee:</strong> P ${order.shippingFee}</p>
             <p><strong>Final Total:</strong> P ${order.finalTotal}</p>
 
-            <div class="order_status">
-                <strong>Status: 
-                    <span id="status_${realIndex}">${order.status}</span>
-                </strong>
-                <br><br>
+            <p><strong>Status:</strong> ${order.status}</p>
 
-                <div id="rating_container_${realIndex}">
-                    ${renderCustomerAction(order, realIndex)}
-                </div>
+            <div class="order_actions">
+                ${actionHtml}
             </div>
         `;
 
-        ordersList.appendChild(card);
+        list.appendChild(card);
     });
-}
-
-function renderCustomerAction(order, index) {
-    if (order.status !== "Completed" && order.status !== "Received") {
-        return `<span style="color:gray;">Waiting for completion...</span>`;
-    }
-
-    if (order.status === "Received") {
-        return renderStarsInteractive(index, order.rating || 0);
-    }
-
-    return `<button class="received_button" onclick="markReceived(${index})">Order Received</button>`;
 }
 
 function markReceived(index) {
     const username = localStorage.getItem("currentUser");
     const users = JSON.parse(localStorage.getItem("users")) || {};
+    const order = users[username].orders[index];
 
-    if (users[username].orders[index].status !== "Completed") {
-        alert("Admin has not marked this order as completed yet.");
+    if (order.status !== "Completed") {
+        alert("This order has not been marked completed by admin yet.");
         return;
     }
 
-    users[username].orders[index].status = "Received";
-    users[username].orders[index].rating = users[username].orders[index].rating || 0;
+    order.status = "Received";
+    order.rating = order.rating || 0;
 
     localStorage.setItem("users", JSON.stringify(users));
     initHistory();
@@ -104,9 +103,11 @@ function renderStarsInteractive(index, rating) {
     let stars = "<strong>Rating:</strong> ";
 
     for (let i = 1; i <= 5; i++) {
-        stars += `<span class="star" onclick="setRating(${index}, ${i})">
-            ${i <= rating ? "★" : "☆"}
-        </span>`;
+        stars += `
+            <span class="star" onclick="setRating(${index}, ${i})">
+                ${i <= rating ? "★" : "☆"}
+            </span>
+        `;
     }
 
     return stars;

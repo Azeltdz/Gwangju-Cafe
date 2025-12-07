@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gwangju Café — Dashboard</title>
+
+        <link rel="stylesheet" href="../../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+
+    <style>
+        body { background: linear-gradient(to bottom, rgb(180, 220, 255), aliceblue, #ffffff); }
+    </style>
+
+    <body onload="loadDashboard()">
+
+        <nav>
+            <div class="brand_container">
+                <img src="../../../../Webpage_Images_&_Icons/Interface_Images/Portal_Logo.png">
+
+                <div class="links_container">
+                    <a class="profile_link" href="AdminProfile.html">Profile</a><a>∙</a>
+                    <a class="ordermanagement_link" href="OrderManagement.html">Queue</a><a>∙</a>
+                    <a class="completed_link" href="CompletedOrders.html">Fulfilled</a><a>∙</a>
+                    <a class="sales_link" href="SalesReport.html">Sales</a><a>∙</a>
+                    <a class="inventory_link" href="Inventory.html">Inventory</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner">
+                <p>Inventory Dashboard</p>
+            </div>
+
+            <div class="dashboard_container">
+                <div class="dashboard_cards">
+
+                    <div class="card" id="totalItemsCard">
+                        <h3>Total Items</h3>
+                        <p>0</p>
+                    </div>
+
+                    <div class="card" id="totalStockCard">
+                        <h3>Total Stock</h3>
+                        <p>0</p>
+                    </div>
+
+                    <div class="card" id="lowStockCard">
+                        <h3>Low Stock Items</h3>
+                        <p>0</p>
+                    </div>
+
+                    <div class="card" id="totalValueCard">
+                        <h3>Total Inventory Value</h3>
+                        <p>₱0</p>
+                    </div>
+
+                    <div class="card" id="expirationCard">
+                        <h3>Expiration Status</h3>
+                        <p>Expired: 0 ∙ Soon: 0</p>
+                    </div>
+
+                </div>
+
+                <div class="chart_section">
+                    <h3>Top 10 Items by Lowest Stock</h3>
+                    <canvas id="lowStockChart"></canvas>
+                </div>
+
+                <div class="chart_section">
+                    <h3>Category Distribution</h3>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <div class="chart_section">
+                    <h3>Top 10 Items by Highest Stock</h3>
+                    <canvas id="topStockChart"></canvas>
+                </div>
+
+                <div class="chart_section">
+                    <h3>Inventory Value by Category</h3>
+                    <canvas id="valueChart"></canvas>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="info_container">
+            <div style="margin: 0 auto;" class="infolinks_container">
+                <button class="logout_button" onclick="admin_logout()">Log Out</button>
+            </div>
+        </div>
+
+        <script src="../../Webpage_Functions/AdminProfile.js"></script>
+        <script src="../../Webpage_Functions/InventoryDashboard.js"></script>
+    </body>
+</html>

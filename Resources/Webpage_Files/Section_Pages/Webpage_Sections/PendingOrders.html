@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pending Orders</title>
+
+        <link rel="stylesheet" href="../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+    </head>
+
+    <body onload="initPending()">
+        <nav>
+            <div class="brand_container">    
+                <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+                <div class="links_container">
+                    <a class="home_link" href="Home.html">Home</a><a>∙</a>
+                    <a class="profile_link" href="Profile.html">Profile</a><a>∙</a>
+                    <a class="orderhistory_link" href="OrderHistory.html">Order History</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner"><p>Pending Orders</p></div>
+            <div class="order_container" id="order_container">Loading...</div>
+        </div>
+
+        <div class="info_container">    
+            <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
+            <div class="infolinks_container">
+                <a class="about_link" href="About.html">About Us</a><a>∙</a>
+                <a class="contacts_link" href="Contacts.html">Contacts</a><a>∙</a>
+                <button class="logout_button" onclick="logout()">Log Out</button>
+            </div>
+        </div>
+
+        <script src="../Webpage_Functions/Profile.js"></script>
+        <script src="../Webpage_Functions/PendingOrders.js"></script>
+    </body>
+</html>

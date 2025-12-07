@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Gwangju Café — Sales Dashboard</title>
+
+        <link rel="stylesheet" href="../../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+
+    <style>
+        body {background: linear-gradient(to bottom, rgb(180, 220, 255), aliceblue, #ffffff)};
+    </style>
+
+    <body onload="loadSalesDashboard()">
+        <nav>
+            <div class="brand_container">
+                <img src="../../../../Webpage_Images_&_Icons/Interface_Images/Portal_Logo.png">
+
+                <div class="links_container">
+                    <a class="profile_link" href="AdminProfile.html">Profile</a><a>∙</a>
+                    <a class="ordermanagement_link" href="OrderManagement.html">Queue</a><a>∙</a>
+                    <a class="completed_link" href="CompletedOrders.html">Fulfilled</a><a>∙</a>
+                    <a class="sales_link" href="SalesReport.html">Sales</a><a>∙</a>
+                    <a class="inventory_link" href="Inventory.html">Inventory</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content">
+            <div class="banner">
+                <p>Sales Dashboard</p>
+            </div>
+
+            <div class="dashboard_container">
+                <div class="dashboard_cards">
+
+                    <div class="card" id="totalOrdersCard">
+                        <h3>Total Orders</h3>
+                        <p>0</p>
+                    </div>
+
+                    <div class="card" id="totalItemsSoldCard">
+                        <h3>Total Items Sold</h3>
+                        <p>0</p>
+                    </div>
+
+                    <div class="card" id="totalRevenueCard">
+                        <h3>Total Revenue</h3>
+                        <p>P 0</p>
+                    </div>
+
+                    <div class="card" id="avgOrderValueCard">
+                        <h3>Average Order Value</h3>
+                        <p>P 0</p>
+                    </div>
+
+                    <div class="card" id="topProductCard">
+                        <h3>Top Selling Product</h3>
+                        <p>None</p>
+                    </div>
+
+                </div>
+
+                <div class="chart_section">
+                    <h3>Sales by Category</h3>
+                    <canvas id="salesCategoryChart"></canvas>
+                </div>
+
+                <div class="chart_section">
+                    <h3>Top 10 Best Selling Products</h3>
+                    <canvas id="topSellingChart"></canvas>
+                </div>
+
+                <div class="chart_section">
+                    <h3>Daily Sales Overview</h3>
+                    <canvas id="dailySalesChart"></canvas>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="info_container">   
+            <div style="margin: 0 auto;" class="infolinks_container">
+                <button class="logout_button" onclick="admin_logout()">Log Out</button>
+            </div>
+        </div>
+
+        <script src="../../Webpage_Functions/SalesDashboard.js"></script>
+        <script src="../../Webpage_Functions/AdminProfile.js"></script>
+    </body>
+</html>
