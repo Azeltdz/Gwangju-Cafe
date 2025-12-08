@@ -159,9 +159,16 @@ function drawDailySalesChart(dailySales) {
     });
 }
 
-function admin_logout() {
-    localStorage.removeItem("currentUser");
-    window.location.href = "../LogIn.html";
+async function admin_logout() {
+    try {
+        await signOut(auth);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    } catch (error) {
+        console.error("Error signing out:", error);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    }
 }
 // Load dashboard when page loads
 document.addEventListener("DOMContentLoaded", loadSalesDashboard);

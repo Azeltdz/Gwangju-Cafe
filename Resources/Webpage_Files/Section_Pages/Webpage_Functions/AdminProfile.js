@@ -22,7 +22,7 @@ async function initAdminProfile() {
         if (!user) {
             // Not logged in, redirect to login
             console.error("No user logged in.");
-            window.location.href = "../LogIn.html";
+            window.location.href = "../../../../../index.html";
             return;
         }
         try {

@@ -1,127 +1,235 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const isProductPage = document.querySelector("#pageCategory");
+import { db, auth } from './firebase-config.js';
+import { 
+    collection, 
+    getDocs, 
+    doc,
+    getDoc,
+    updateDoc,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
-    if (isProductPage) {
-        localStorage.setItem("lastFlavorPage", window.location.href);
-    }
-});
-
-function menuGetInventory() {
-    return JSON.parse(localStorage.getItem("inventory")) || [];
-}
-
-function menuSaveInventory(inventory) {
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-}
-
-function menuFindInventoryItem(flavor, size) {
-    const inventory = menuGetInventory();
-
-    return inventory.find(i =>
-        i.name.toLowerCase() === flavor.toLowerCase() &&
-        i.size.toLowerCase() === size.toLowerCase()
-    ) || null;
-}
-
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+const INVENTORY_COLLECTION = 'inventory';
+const USERS_COLLECTION = 'users';
 const shipping_fee = 50;
 
-document.addEventListener("DOMContentLoaded", () => {
-    const addBtn = document.querySelector(".add_to_cart");
-    if (!addBtn) return;
+let currentUser = null;
+let cart = [];
+let isInitialized = false;
 
-    addBtn.addEventListener("click", function () {
-
-        const flavor = document.querySelector(".flavor")?.value || "";
-        const sizeOption = document.querySelector(".size_select")?.selectedOptions[0];
-        const size = sizeOption ? sizeOption.value : "";
-
-        const qtyInput = document.querySelector(".quantity input") || document.querySelector(".quantity_input");
-        const quantity = parseInt(qtyInput?.value || 1);
-
-        const invItem = menuFindInventoryItem(flavor, size);
-
-        if (!invItem) {
-            alert(`Item not found in inventory: ${flavor} (${size})`);
-            return;
+// Listen for auth state changes
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        await loadUserCart();
+        
+        // Update stock display after user is authenticated
+        if (!isInitialized) {
+            isInitialized = true;
+            await updateProductDisplay();
         }
-
-        if (invItem.stock < quantity) {
-            alert(`${invItem.name} (${invItem.size}) has only ${invItem.stock} left.`);
-            return;
-        }
-
-        const price = invItem.price;
-        const productSubtotal = price * quantity;
-        const subtotal = productSubtotal + shipping_fee;
-
-        const item = {
-            id: Date.now(),
-            name: `${invItem.name} ∙ ${invItem.size}`,
-            price,
-            quantity,
-            productSubtotal,
-            shipping: shipping_fee,
-            subtotal
-        };
-
-        cart.push(item);
-        localStorage.setItem("cart", JSON.stringify(cart));
-
-        invItem.stock -= quantity;
-
-        let inventory = menuGetInventory();
-
-        const index = inventory.findIndex(i =>
-            i.name.toLowerCase() === invItem.name.toLowerCase() &&
-            i.size.toLowerCase() === invItem.size.toLowerCase()
-        );
-
-        if (index !== -1) {
-            inventory[index] = invItem;
-            menuSaveInventory(inventory);
-        }
-
-        const stockDisplay = document.querySelector("#inv_stock_display");
-        if (stockDisplay) stockDisplay.textContent = `Stock: ${invItem.stock}`;
-
-        flyToCart(this);
-    });
-
-    function updateProductDisplay() {
-        const flavor = document.querySelector(".flavor")?.value;
-        const size = document.querySelector(".size_select")?.value;
-
-        const invItem = menuFindInventoryItem(flavor, size);
-
-        const stockEl = document.querySelector("#inv_stock_display");
-
-        if (invItem) {
-            if (stockEl) stockEl.textContent = `Stock: ${invItem.stock}`;
-        } else {
-            if (stockEl) stockEl.textContent = `Stock: --`;
-        }
+    } else {
+        currentUser = null;
+        cart = [];
     }
-
-    document.querySelector(".flavor")?.addEventListener("change", updateProductDisplay);
-    document.querySelector(".size_select")?.addEventListener("change", updateProductDisplay);
-
-    updateProductDisplay();
 });
 
+async function loadUserCart() {
+    if (!currentUser) return;
+
+    try {
+        const userDocRef = doc(db, USERS_COLLECTION, currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            cart = userData.cart || [];
+        }
+    } catch (error) {
+        console.error("Error loading user cart:", error);
+    }
+}
+
+async function saveUserCart() {
+    if (!currentUser) {
+        alert("Please log in to add items to cart.");
+        return false;
+    }
+    try {
+        const userDocRef = doc(db, USERS_COLLECTION, currentUser.uid);
+        await updateDoc(userDocRef, {
+            cart: cart
+        });
+        return true;
+    } catch (error) {
+        console.error("Error saving cart:", error);
+        alert("Failed to save cart. Please try again.");
+        return false;
+    }
+}
+
+async function menuGetInventory() {
+    try {
+        const inventorySnapshot = await getDocs(collection(db, INVENTORY_COLLECTION));
+        const inventory = [];
+        
+        inventorySnapshot.forEach((doc) => {
+            inventory.push({
+                docId: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        return inventory;
+    } catch (error) {
+        console.error("Error loading inventory:", error);
+        return [];
+    }
+}
+
+async function menuFindInventoryItem(flavor, size) {
+    try {
+        // Query Firestore directly for the specific item
+        const inventoryRef = collection(db, INVENTORY_COLLECTION);
+        const inventorySnapshot = await getDocs(inventoryRef);
+        
+        let foundItem = null;
+        
+        inventorySnapshot.forEach((doc) => {
+            const item = doc.data();
+            if (item.name.toLowerCase() === flavor.toLowerCase() &&
+                item.size.toLowerCase() === size.toLowerCase()) {
+                foundItem = {
+                    docId: doc.id,
+                    ...item
+                };
+            }
+        });
+        
+        return foundItem;
+    } catch (error) {
+        console.error("Error finding inventory item:", error);
+        return null;
+    }
+}
+
+async function updateInventoryStock(invItem, quantityToReduce) {
+    try {
+        const docRef = doc(db, INVENTORY_COLLECTION, invItem.docId);
+        const newStock = invItem.stock - quantityToReduce;
+        await updateDoc(docRef, {
+            stock: newStock
+        });
+        return true;
+    } catch (error) {
+        console.error("Error updating inventory stock:", error);
+        return false;
+    }
+}
+
+async function updateProductDisplay() {
+    const flavorSelect = document.querySelector(".flavor");
+    const sizeSelect = document.querySelector(".size_select");
+    const stockEl = document.querySelector("#inv_stock_display");
+    // Check if we're on a product page
+    if (!flavorSelect || !sizeSelect || !stockEl) {
+        return;
+    }
+    const flavor = flavorSelect.value;
+    const size = sizeSelect.value;
+
+    if (!flavor || !size) {
+        stockEl.textContent = `Stock: --`;
+        return;
+    }
+    // Show loading state
+    stockEl.textContent = `Stock: Loading...`;
+    try {
+        const invItem = await menuFindInventoryItem(flavor, size);
+
+        if (invItem && invItem.stock !== undefined) {
+            stockEl.textContent = `Stock: ${invItem.stock}`;
+            stockEl.style.color = invItem.stock > 0 ? '#333' : '#d32f2f';
+        } else {
+            stockEl.textContent = `Stock: Not Available`;
+            console.warn(`Inventory item not found: ${flavor} (${size})`);
+        }
+    } catch (error) {
+        console.error("Error updating product display:", error);
+        stockEl.textContent = `Stock: Error`;
+    }
+}
+
+async function handleAddToCart() {
+    // Check if user is logged in
+    if (!currentUser) {
+        alert("Please log in to add items to cart.");
+        return;
+    }
+    const flavor = document.querySelector(".flavor")?.value || "";
+    const sizeOption = document.querySelector(".size_select")?.selectedOptions[0];
+    const size = sizeOption ? sizeOption.value : "";
+    const qtyInput = document.querySelector(".quantity input") || document.querySelector(".quantity_input");
+    const quantity = parseInt(qtyInput?.value || 1);
+
+    if (!flavor || !size) {
+        alert("Please select a flavor and size.");
+        return;
+    }
+    if (quantity < 1 || quantity > 15) {
+        alert("Please enter a valid quantity (1-15).");
+        return;
+    }
+    const invItem = await menuFindInventoryItem(flavor, size);
+
+    if (!invItem) {
+        alert(`Item not found in inventory: ${flavor} (${size})`);
+        return;
+    }
+    if (invItem.stock < quantity) {
+        alert(`${invItem.name} (${invItem.size}) has only ${invItem.stock} left.`);
+        return;
+    }
+    const price = invItem.price;
+    const productSubtotal = price * quantity;
+    const subtotal = productSubtotal + shipping_fee;
+    const item = {
+        id: Date.now(),
+        name: `${invItem.name} ∙ ${invItem.size}`,
+        price,
+        quantity,
+        productSubtotal,
+        shipping: shipping_fee,
+        subtotal,
+        addedBy: currentUser.uid,
+        addedByEmail: currentUser.email,
+        addedAt: new Date().toISOString()
+    };
+    cart.push(item);
+    // Save cart to Firestore
+    const saved = await saveUserCart();
+    if (!saved) return;
+    // Update inventory stock
+    const updated = await updateInventoryStock(invItem, quantity);
+    if (!updated) {
+        alert("Failed to update inventory. Please try again.");
+        return;
+    }
+    // Update stock display immediately
+    await updateProductDisplay();
+
+    flyToCart(document.querySelector(".add_to_cart"));
+}
 function flyToCart(button) {
     const cartRect = { top: 20, left: window.innerWidth / 2 - 40 };
-
     const btnRect = button.getBoundingClientRect();
     const startX = btnRect.left + btnRect.width / 2 - 40; 
     const startY = btnRect.top + btnRect.height / 2 - 40;
-
     const clone = document.createElement("div");
     clone.className = "fly";
-
     clone.style.left = startX + "px";
     clone.style.top = startY + "px";
-
     document.body.appendChild(clone);
 
     requestAnimationFrame(() => {
@@ -129,6 +237,29 @@ function flyToCart(button) {
         clone.style.transform = `translate(${cartRect.left - startX}px, ${cartRect.top - startY}px) scale(0.2)`; 
         clone.style.opacity = "0";
     });
-
     setTimeout(() => clone.remove(), 2000);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const addBtn = document.querySelector(".add_to_cart");
+    if (addBtn) {
+        addBtn.addEventListener("click", handleAddToCart);
+    }
+    const flavorSelect = document.querySelector(".flavor");
+    if (flavorSelect) {
+        flavorSelect.addEventListener("change", updateProductDisplay);
+    }
+    const sizeSelect = document.querySelector(".size_select");
+    if (sizeSelect) {
+        sizeSelect.addEventListener("change", updateProductDisplay);
+    }
+    // Initial stock display will be triggered by onAuthStateChanged
+    // Or immediately if user is already loaded
+    if (currentUser) {
+        updateProductDisplay();
+    }
+});
+
+// Export functions if needed
+window.menuGetInventory = menuGetInventory;
+window.menuFindInventoryItem = menuFindInventoryItem;

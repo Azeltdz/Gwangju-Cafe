@@ -37,23 +37,19 @@ async function loadDashboard() {
                 ...doc.data()
             });
         });
-
         // Calculate dashboard metrics
         const totalItems = inventory.length;
         const totalStock = inventory.reduce((sum, item) => sum + item.stock, 0);
         const lowStock = inventory.filter(item => item.stock <= 10);
         const totalValue = inventory.reduce((sum, item) => sum + (item.stock * item.price), 0);
-
         const expired = inventory.filter(item =>
             item.expirationDate && daysUntilExpired(item.expirationDate) <= 0
         );
-
         const expiringSoon = inventory.filter(item => {
             if (!item.expirationDate) return false;
             const days = daysUntilExpired(item.expirationDate);
             return days > 0 && days <= 7;
         });
-
         // Update dashboard cards
         document.querySelector("#totalItemsCard p").textContent = totalItems;
         document.querySelector("#totalStockCard p").textContent = totalStock;
@@ -61,7 +57,6 @@ async function loadDashboard() {
         document.querySelector("#totalValueCard p").textContent = "P " + totalValue;
         document.querySelector("#expirationCard p").textContent =
             `Expired: ${expired.length} ∙ Soon: ${expiringSoon.length}`;
-
         // Draw charts
         drawCategoryChart(inventory);
         drawTopStockChart(inventory);
@@ -82,7 +77,6 @@ function drawLowStockChart(inventory) {
     if (chartInstances.lowStockChart) {
         chartInstances.lowStockChart.destroy();
     }
-
     const lowest15 = [...inventory].sort((a, b) => a.stock - b.stock).slice(0, 15);
 
     chartInstances.lowStockChart = new Chart(document.getElementById("lowStockChart"), {
@@ -104,14 +98,11 @@ function drawCategoryChart(inventory) {
     if (chartInstances.categoryChart) {
         chartInstances.categoryChart.destroy();
     }
-
     const categories = {};
-
     inventory.forEach(item => {
         if (!categories[item.category]) categories[item.category] = 0;
         categories[item.category]++;
     });
-
     chartInstances.categoryChart = new Chart(document.getElementById("categoryChart"), {
         type: "doughnut",
         data: {
@@ -129,7 +120,6 @@ function drawTopStockChart(inventory) {
     if (chartInstances.topStockChart) {
         chartInstances.topStockChart.destroy();
     }
-
     const top15 = [...inventory].sort((a, b) => b.stock - a.stock).slice(0, 15);
 
     chartInstances.topStockChart = new Chart(document.getElementById("topStockChart"), {
@@ -145,7 +135,6 @@ function drawTopStockChart(inventory) {
         options: { indexAxis: "y" }
     });
 }
-
 function drawValueChart(inventory) {
     // Destroy existing chart if it exists
     if (chartInstances.valueChart) {
@@ -153,12 +142,10 @@ function drawValueChart(inventory) {
     }
 
     const valueMap = {};
-
     inventory.forEach(item => {
         if (!valueMap[item.category]) valueMap[item.category] = 0;
         valueMap[item.category] += item.stock * item.price;
     });
-
     chartInstances.valueChart = new Chart(document.getElementById("valueChart"), {
         type: "bar",
         data: {
@@ -175,8 +162,20 @@ function drawValueChart(inventory) {
     });
 }
 
+async function admin_logout() {
+    try {
+        await signOut(auth);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    } catch (error) {
+        console.error("Error signing out:", error);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    }
+}
+
 // Load dashboard when page loads
 document.addEventListener("DOMContentLoaded", loadDashboard);
-
 // Make loadDashboard globally accessible if needed
 window.loadDashboard = loadDashboard;
+window.admin_logout = admin_logout;

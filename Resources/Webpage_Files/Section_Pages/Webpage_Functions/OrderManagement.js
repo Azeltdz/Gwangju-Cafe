@@ -60,8 +60,8 @@ async function loadAllCustomerOrders() {
             ].filter(Boolean).join(", ") || "<i>No address provided</i>";
             card.innerHTML = `
                 <div class="order_header">
-                    <span><b>User:</b> ${orderObj.username}</span>
-                    <span>${orderObj.date || 'N/A'}</span>
+                    <span><b>User:</b> ${orderObj.username}</span><br><br>
+                    <span>Ordered Date: ${orderObj.date || 'N/A'}</span>
                 </div>
                 <p><b>Address:</b> ${customerAddress}</p>
                 <p><b>Total:</b> P ${orderObj.finalTotal || 0}</p>
@@ -129,9 +129,16 @@ async function updateOrderStatus(userId, orderIndex, displayIndex) {
     }
 }
 
-function admin_logout() {
-    localStorage.removeItem("currentUser");
-    window.location.href = "../LogIn.html";
+async function admin_logout() {
+    try {
+        await signOut(auth);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    } catch (error) {
+        console.error("Error signing out:", error);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    }
 }
 // Load orders when page loads
 document.addEventListener("DOMContentLoaded", loadAllCustomerOrders);

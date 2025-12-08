@@ -481,11 +481,17 @@ async function generateInventory() {
     }
 }
 
-function admin_logout() {
-    localStorage.removeItem("currentUser");
-    window.location.href = "../../../../../index.html";
+async function admin_logout() {
+    try {
+        await signOut(auth);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    } catch (error) {
+        console.error("Error signing out:", error);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    }
 }
-
 // Make functions globally accessible
 window.updateItem = updateItem;
 window.addInventoryItem = addInventoryItem;

@@ -51,8 +51,8 @@ async function loadCompletedOrders() {
             card.className = "order_card";
             card.innerHTML = `
                 <div class="order_header">
-                    <span>User: ${order.username}</span>
-                    <span>${order.date || 'N/A'}</span>
+                    <span>User: ${order.username}</span><br><br>
+                    <span>Ordered Date: ${order.date || 'N/A'}</span>
                 </div>
                 <p><b>Total:</b> P ${order.finalTotal || 0}</p>
                 <p><b>Items:</b></p>
@@ -65,9 +65,16 @@ async function loadCompletedOrders() {
         container.innerHTML = "<p>Failed to load completed orders. Please refresh the page.</p>";
     }
 }
-function admin_logout() {
-    localStorage.removeItem("currentUser");
-    window.location.href = "../LogIn.html";
+async function admin_logout() {
+    try {
+        await signOut(auth);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    } catch (error) {
+        console.error("Error signing out:", error);
+        localStorage.removeItem("currentUser");
+        window.location.href = "../../../../../index.html";
+    }
 }
 // Load completed orders when page loads
 document.addEventListener("DOMContentLoaded", loadCompletedOrders);
