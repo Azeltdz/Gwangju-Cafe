@@ -1,4 +1,3 @@
-
 import { db } from './firebase-config.js';
 import { 
     collection, 
@@ -13,6 +12,7 @@ const INVENTORY_COLLECTION = 'inventory';
 let chartInstances = {
     salesCategoryChart: null,
     topSellingChart: null,
+    lowestSellingChart: null,
     dailySalesChart: null
 };
 async function loadSalesDashboard() {
@@ -92,6 +92,7 @@ async function loadSalesDashboard() {
         // Draw charts
         drawSalesCategoryChart(categoryRevenue);
         drawTopSellingChart(productSales);
+        drawLowestSellingChart(productSales);
         drawDailySalesChart(dailySales);
     } catch (error) {
         console.error("Error loading sales dashboard:", error);
@@ -135,6 +136,27 @@ function drawTopSellingChart(productSales) {
     });
 }
 
+function drawLowestSellingChart(productSales) {
+    // Destroy existing chart if it exists
+    if (chartInstances.lowestSellingChart) {
+        chartInstances.lowestSellingChart.destroy();
+    }
+    // Sort ascending (lowest first) and take bottom 10
+    const sorted = Object.entries(productSales).sort((a, b) => a[1] - b[1]).slice(0, 10);
+
+    chartInstances.lowestSellingChart = new Chart(document.getElementById("lowestSellingChart"), {
+        type: "bar",
+        data: {
+            labels: sorted.map(i => i[0]),
+            datasets: [{
+                label: "Quantity Sold",
+                data: sorted.map(i => i[1]),
+                backgroundColor: "#8b330fff"
+            }]
+        },
+        options: { indexAxis: "y" }
+    });
+}
 function drawDailySalesChart(dailySales) {
     // Destroy existing chart if it exists
     if (chartInstances.dailySalesChart) {

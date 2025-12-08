@@ -1,3 +1,7 @@
+body {
+    overflow-x: hidden;
+}
+
 .inventory_popup_overlay {
     position: fixed;
     top: 0;
@@ -73,7 +77,9 @@
 }
 
 .btn_confirm,
-.btn_cancel {
+.btn_cancel,
+.btn_delete,
+.update_button {
     flex: 1;
     padding: 12px;
     border: none;
@@ -91,6 +97,18 @@
 
 .btn_confirm:hover {
     background: #45a049;
+    transform: translateY(-4px);
+}
+
+.btn_delete {
+    background: #f44336;
+    color: white;
+}
+
+.btn_delete:hover, .btn_cancel:hover  {
+    background: #da190b;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn_cancel {
@@ -98,8 +116,13 @@
     color: white;
 }
 
-.btn_cancel:hover {
-    background: #da190b;
+.update_button {
+    width: 100%;
+    background: aqua;
+}
+
+.update_button:hover {
+    transform: translateY(-4px);
 }
 
 /* Generate Button Styling */
@@ -132,4 +155,126 @@
 .inventory_header h3 {
     flex: 1;
     margin: 0;
+}
+
+/* Inventory */
+.inventory_table {
+    display: flex;
+    justify-content: center;   
+    margin-top: 20px;
+}
+
+.admin_inventory_table {
+    border-collapse: collapse;
+    width: 100%;            
+    max-width: 900px;
+    text-align: center;      
+    margin: 0 auto;         
+}
+
+.admin_inventory_table th,
+.admin_inventory_table td {
+    padding: 12px;
+    border: 1px solid #000000;
+    text-align: center;       
+}
+
+.admin_inventory_table input.inventory_input {
+    width: 80px;     
+    padding: 5px;
+    text-align: center;  
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.dashboard_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.dashboard_cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: clamp(200px, 20%, 220px);
+    flex-shrink: 0;
+}
+
+.card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 25px;
+    text-align: center;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card p {
+    margin: 0;
+    font-size: 32px;
+    font-weight: bold;
+    color: #382719;
+}
+
+#expirationCard p {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.dashboard_charts {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(clamp(250px, 45%, 500px), 1fr));
+    gap: 25px;
+    height: fit-content;
+}
+
+.chart_section {
+    background: #d0d7e4;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 1 / 1;
+}
+
+.chart_section h3 {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    color: #382719;
+    font-weight: 600;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.chart_section canvas {
+    flex: 1;
+    max-height: 300px;
+}
+
+@media (width <= 820px) {
+    .dashboard_container {
+        flex-direction: column;
+    }
 }

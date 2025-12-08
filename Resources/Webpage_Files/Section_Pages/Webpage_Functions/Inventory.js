@@ -7,7 +7,8 @@ import {
     deleteDoc, 
     doc,
     query,
-    orderBy 
+    orderBy,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 const INVENTORY_COLLECTION = 'inventory';
@@ -184,13 +185,9 @@ function renderInventoryTable(inventory) {
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Name</th>
                     <th>Category</th>
+                    <th>Name</th>
                     <th>Size</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Added</th>
-                    <th>Expiration</th>
                     <th>Days Left</th>
                     <th>Action</th>
                 </tr>
@@ -214,17 +211,12 @@ function renderInventoryTable(inventory) {
             html += `
                 <tr ${rowColor} data-doc-id="${item.docId}">
                     <td>${item.id}</td>
-                    <td><input type="text" value="${item.name}" data-field="name" class="inventory_input"></td>
-                    <td><input type="text" value="${item.category}" data-field="category" class="inventory_input"></td>
-                    <td><input type="text" value="${item.size}" data-field="size" class="inventory_input"></td>
-                    <td><input type="number" value="${item.price}" data-field="price" class="inventory_input"></td>
-                    <td><input type="number" value="${item.stock}" data-field="stock" class="inventory_input"></td>
-                    <td><input type="date" value="${item.addedDate}" data-field="addedDate" class="inventory_input"></td>
-                    <td><input type="date" value="${item.expirationDate}" data-field="expirationDate" class="inventory_input"></td>
+                    <td>${item.category}</td>
+                    <td>${item.name}</td>
+                    <td>${item.size}</td>
                     <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
                     <td>
-                        <button class="update_button" onclick="updateItem(${index})">Update</button>
-                        <button class="delete_button" onclick="deleteInventoryItem(${index})">Delete</button>
+                        <button class="update_button" data-doc-id="${item.docId}">Update</button>
                     </td>
                 </tr>
             `;
@@ -235,31 +227,366 @@ function renderInventoryTable(inventory) {
         </table>
     `;
     container.innerHTML = html;
+    
+    // Add event listeners to all update buttons
+    document.querySelectorAll('.update_button').forEach(button => {
+        button.addEventListener('click', function() {
+            const docId = this.getAttribute('data-doc-id');
+            updateItem(docId);
+        });
+    });
 }
 
-async function updateItem(index) {
+async function updateItem(docId) {
+    // Fetch the full item data from Firestore
     try {
-        const row = document.querySelectorAll("tbody tr")[index];
-        const docId = row.dataset.docId;
-        const inputs = row.querySelectorAll(".inventory_input");
-        const updates = {};
-        inputs.forEach(input => {
-            const field = input.dataset.field;
-            let value = input.value.trim();
-
-            if (field === "price" || field === "stock") {
-                value = Number(value);
-            }
-            updates[field] = value;
-        });
         const docRef = doc(db, INVENTORY_COLLECTION, docId);
-        await updateDoc(docRef, updates);
-        await loadAndRenderInventory();
-        alert("Item updated successfully!");
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            const fullData = {
+                docId: docId,
+                ...docSnap.data()
+            };
+            showUpdateItemPopup(fullData);
+        } else {
+            alert('Item not found');
+        }
     } catch (error) {
-        console.error("Error updating item:", error);
-        alert("Failed to update item. Please try again.");
+        console.error('Error fetching item:', error);
+        alert('Failed to load item data');
     }
+}
+
+function showUpdateItemPopup(currentData) {
+    const addedDate = new Date(currentData.addedDate);
+    const minDate = new Date(addedDate);
+    minDate.setDate(addedDate.getDate() + 1);
+    const minDateString = minDate.toISOString().split('T')[0];
+
+    const popup = document.createElement('div');
+    popup.className = 'inventory_popup_overlay';
+    popup.innerHTML = `
+        <div class="inventory_popup">
+            <h2>Update Inventory Item</h2>
+            <div class="popup_form">
+                <label>Category:</label>
+                <select id="update_category" class="styled_select">
+                    <option value="">Select Category</option>
+                    <option value="Coffee" ${currentData.category === 'Coffee' ? 'selected' : ''}>Coffee</option>
+                    <option value="Non-Coffee" ${currentData.category === 'Non-Coffee' ? 'selected' : ''}>Non-Coffee</option>
+                    <option value="Secret Menu" ${currentData.category === 'Secret Menu' ? 'selected' : ''}>Secret Menu</option>
+                    <option value="Pastries" ${currentData.category === 'Pastries' ? 'selected' : ''}>Pastries</option>
+                    <option value="Takoyaki" ${currentData.category === 'Takoyaki' ? 'selected' : ''}>Takoyaki</option>
+                    <option value="Ramen" ${currentData.category === 'Ramen' ? 'selected' : ''}>Ramen</option>
+                </select>
+
+                <div id="update_subcategory_container" style="display:none;">
+                    <select id="update_subcategory" class="styled_select">
+                        <option value="">Select Subcategory</option>
+                    </select>
+                </div>
+
+                <label>Item Name:</label>
+                <select id="update_name" class="styled_select">
+                    <option value="">Select Item</option>
+                </select>
+
+                <label>Size:</label>
+                <select id="update_size" class="styled_select">
+                    <option value="">Select Size</option>
+                </select>
+
+                <label>Price:</label>
+                <input type="number" id="update_price" class="styled_input" readonly>
+
+                <label>Stock Quantity:</label>
+                <input type="number" id="update_stock" class="styled_input quantity_input" min="1" max="15" value="${currentData.stock}">
+
+                <label>Added Date:</label>
+                <input type="date" id="update_addedDate" class="styled_input" value="${currentData.addedDate}" readonly>
+
+                <label>Expiration Date:</label>
+                <input type="date" id="update_expiration" class="styled_input" value="${currentData.expirationDate}">
+
+                <div class="popup_buttons">
+                    <button class="btn_confirm" id="btn_save_changes">Save Changes</button>
+                    <button class="btn_delete" id="btn_delete_item">Delete Item</button>
+                    <button class="btn_cancel" id="btn_cancel_update">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+    // Close popup when clicking outside
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            closeUpdateItemPopup();
+        }
+    });
+    // Add button event listeners with proper closure
+    document.getElementById('btn_save_changes').addEventListener('click', () => {
+        confirmUpdateItem(currentData.docId);
+    });
+    document.getElementById('btn_delete_item').addEventListener('click', () => {
+        confirmDeleteFromPopup(currentData.docId);
+    });
+    
+    document.getElementById('btn_cancel_update').addEventListener('click', closeUpdateItemPopup);
+    // Add dropdown event listeners
+    document.getElementById('update_category').addEventListener('change', handleUpdateCategoryChange);
+    document.getElementById('update_subcategory').addEventListener('change', handleUpdateSubcategoryChange);
+    document.getElementById('update_name').addEventListener('change', handleUpdateNameChange);
+    document.getElementById('update_size').addEventListener('change', handleUpdateSizeChange);
+// Update expiration min date when added date changes
+    const addedDateInput = document.getElementById('update_addedDate');
+    const expirationInput = document.getElementById('update_expiration');
+    
+    addedDateInput.addEventListener('change', function(e) {
+        const addedDate = new Date(e.target.value);
+        const minDate = new Date(addedDate);
+        minDate.setDate(addedDate.getDate() + 1);
+        const minDateString = minDate.toISOString().split('T')[0];
+        expirationInput.setAttribute('min', minDateString);
+        
+        // If current expiration is before the new minimum, reset it
+        if (expirationInput.value && expirationInput.value <= e.target.value) {
+            expirationInput.value = minDateString;
+        }
+    });
+    
+    // Validate expiration date on change and on input
+    expirationInput.addEventListener('change', validateExpirationDate);
+    expirationInput.addEventListener('input', validateExpirationDate);
+    
+    function validateExpirationDate(e) {
+        const addedDate = document.getElementById('update_addedDate').value;
+        if (addedDate && e.target.value && e.target.value <= addedDate) {
+            alert('Expiration date must be at least 1 day after the added date!');
+            const minDate = new Date(addedDate);
+            minDate.setDate(minDate.getDate() + 1);
+            e.target.value = minDate.toISOString().split('T')[0];
+        }
+    }
+    // Initialize dropdowns with current data
+    initializeUpdatePopup(currentData);
+}
+
+function initializeUpdatePopup(currentData) {
+    const category = currentData.category;
+    
+    if (!category) return;
+    
+    const categoryData = menuData[category];
+    
+    // Check if category has subcategories
+    if (categoryData.subcategories) {
+        const subcategoryContainer = document.getElementById('update_subcategory_container');
+        const subcategorySelect = document.getElementById('update_subcategory');
+        
+        subcategoryContainer.style.display = 'block';
+        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+        
+        // Find which subcategory contains this item
+        let foundSubcategory = null;
+        for (const [subKey, subData] of Object.entries(categoryData.subcategories)) {
+            if (subData.items.includes(currentData.name)) {
+                foundSubcategory = subKey;
+                break;
+            }
+        }
+        
+        Object.keys(categoryData.subcategories).forEach(sub => {
+            const selected = sub === foundSubcategory ? 'selected' : '';
+            subcategorySelect.innerHTML += `<option value="${sub}" ${selected}>${sub}</option>`;
+        });
+        
+        if (foundSubcategory) {
+            populateUpdateItems(category, foundSubcategory, currentData.name);
+            populateUpdateSizes(category, foundSubcategory, currentData);
+        }
+    } else {
+        populateUpdateItems(category, null, currentData.name);
+        populateUpdateSizes(category, null, currentData);
+    }
+}
+
+function handleUpdateCategoryChange(e) {
+    const category = e.target.value;
+    const subcategoryContainer = document.getElementById('update_subcategory_container');
+    const subcategorySelect = document.getElementById('update_subcategory');
+    const nameSelect = document.getElementById('update_name');
+    const sizeSelect = document.getElementById('update_size');
+
+    nameSelect.innerHTML = '<option value="">Select Item</option>';
+    sizeSelect.innerHTML = '<option value="">Select Size</option>';
+    document.getElementById('update_price').value = '';
+
+    if (!category) {
+        subcategoryContainer.style.display = 'none';
+        return;
+    }
+
+    const categoryData = menuData[category];
+
+    if (categoryData.subcategories) {
+        subcategoryContainer.style.display = 'block';
+        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+        Object.keys(categoryData.subcategories).forEach(sub => {
+            subcategorySelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+        });
+    } else {
+        subcategoryContainer.style.display = 'none';
+        populateUpdateItems(category);
+    }
+}
+
+function handleUpdateSubcategoryChange(e) {
+    const category = document.getElementById('update_category').value;
+    const subcategory = e.target.value;
+
+    if (!subcategory) return;
+
+    populateUpdateItems(category, subcategory);
+}
+
+function populateUpdateItems(category, subcategory = null, selectedName = null) {
+    const nameSelect = document.getElementById('update_name');
+    const categoryData = menuData[category];
+    
+    nameSelect.innerHTML = '<option value="">Select Item</option>';
+
+    let items;
+    if (subcategory) {
+        items = categoryData.subcategories[subcategory].items;
+    } else if (category === 'Ramen') {
+        items = categoryData.items.map(item => item.name);
+    } else {
+        items = categoryData.items;
+    }
+
+    items.forEach(item => {
+        const selected = item === selectedName ? 'selected' : '';
+        nameSelect.innerHTML += `<option value="${item}" ${selected}>${item}</option>`;
+    });
+}
+
+function populateUpdateSizes(category, subcategory = null, currentData) {
+    const categoryData = menuData[category];
+    const sizeSelect = document.getElementById('update_size');
+    
+    let sizes;
+    if (category === 'Ramen') {
+        const ramenItem = categoryData.items.find(item => item.name === currentData.name);
+        sizes = ramenItem?.sizes || [];
+    } else if (subcategory) {
+        sizes = categoryData.subcategories[subcategory].sizes;
+    } else {
+        sizes = categoryData.sizes;
+    }
+
+    sizeSelect.innerHTML = '<option value="">Select Size</option>';
+    sizes.forEach(sizeObj => {
+        const selected = sizeObj.size === currentData.size ? 'selected' : '';
+        sizeSelect.innerHTML += `<option value="${sizeObj.size}" data-price="${sizeObj.price}" ${selected}>${sizeObj.size} - ₱${sizeObj.price}</option>`;
+    });
+    
+    // Set the price
+    document.getElementById('update_price').value = currentData.price;
+}
+
+function handleUpdateNameChange(e) {
+    const category = document.getElementById('update_category').value;
+    const subcategory = document.getElementById('update_subcategory').value;
+    const name = e.target.value;
+    const sizeSelect = document.getElementById('update_size');
+
+    sizeSelect.innerHTML = '<option value="">Select Size</option>';
+    document.getElementById('update_price').value = '';
+
+    if (!name) return;
+
+    const categoryData = menuData[category];
+    let sizes;
+
+    if (category === 'Ramen') {
+        const ramenItem = categoryData.items.find(item => item.name === name);
+        sizes = ramenItem.sizes;
+    } else if (subcategory) {
+        sizes = categoryData.subcategories[subcategory].sizes;
+    } else {
+        sizes = categoryData.sizes;
+    }
+
+    sizes.forEach(sizeObj => {
+        sizeSelect.innerHTML += `<option value="${sizeObj.size}" data-price="${sizeObj.price}">${sizeObj.size} - ₱${sizeObj.price}</option>`;
+    });
+}
+
+function handleUpdateSizeChange(e) {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const price = selectedOption.getAttribute('data-price');
+    document.getElementById('update_price').value = price || '';
+}
+
+async function confirmUpdateItem(docId) {
+    const category = document.getElementById('update_category').value;
+    const name = document.getElementById('update_name').value;
+    const size = document.getElementById('update_size').value;
+    const price = Number(document.getElementById('update_price').value);
+    const stock = Number(document.getElementById('update_stock').value);
+    const addedDate = document.getElementById('update_addedDate').value;
+    const expirationDate = document.getElementById('update_expiration').value;
+
+    if (!category || !name || !size || !price || !stock || !expirationDate) {
+        alert('Please fill in all fields!');
+        return;
+    }
+
+    if (stock < 1 || stock > 15) {
+        alert('Stock must be between 1 and 15!');
+        return;
+    }
+
+    try {
+        const docRef = doc(db, INVENTORY_COLLECTION, docId);
+        await updateDoc(docRef, {
+            name,
+            category,
+            size,
+            price,
+            stock,
+            addedDate,
+            expirationDate
+        });
+        
+        closeUpdateItemPopup();
+        await loadAndRenderInventory();
+        alert('Item updated successfully!');
+    } catch (error) {
+        console.error('Error updating item:', error);
+        alert('Failed to update item. Please try again.');
+    }
+}
+
+async function confirmDeleteFromPopup(docId) {
+    if (!confirm("Are you sure you want to delete this item?")) return;
+    
+    try {
+        await deleteDoc(doc(db, INVENTORY_COLLECTION, docId));
+        closeUpdateItemPopup();
+        await loadAndRenderInventory();
+        updateGenerateButton();
+        alert("Item deleted successfully!");
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        alert("Failed to delete item. Please try again.");
+    }
+}
+
+function closeUpdateItemPopup() {
+    const popup = document.querySelector('.inventory_popup_overlay');
+    if (popup) popup.remove();
 }
 
 async function addInventoryItem() {
@@ -304,7 +631,7 @@ function showAddItemPopup() {
                 <input type="number" id="popup_price" class="styled_input" readonly>
 
                 <label>Stock Quantity:</label>
-                <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="15" value="1">
+                <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="15" value="1" readonly>
 
                 <label>Expiration Date:</label>
                 <input type="date" id="popup_expiration" class="styled_input">
@@ -476,21 +803,6 @@ async function confirmAddItem() {
 function closeAddItemPopup() {
     const popup = document.querySelector('.inventory_popup_overlay');
     if (popup) popup.remove();
-}
-
-async function deleteInventoryItem(index) {
-    if (!confirm("Remove this item from inventory?")) return;
-    try {
-        const row = document.querySelectorAll("tbody tr")[index];
-        const docId = row.dataset.docId;
-        await deleteDoc(doc(db, INVENTORY_COLLECTION, docId));
-        await loadAndRenderInventory();
-        updateGenerateButton();
-        alert("Item deleted successfully!");
-    } catch (error) {
-        console.error("Error deleting item:", error);
-        alert("Failed to delete item. Please try again.");
-    }
 }
 
 async function toggleGenerateButton() {
@@ -846,8 +1158,7 @@ async function admin_logout() {
 // Make functions globally accessible
 window.updateItem = updateItem;
 window.addInventoryItem = addInventoryItem;
-window.deleteInventoryItem = deleteInventoryItem;
-window.toggleGenerateButton = toggleGenerateButton;
 window.confirmAddItem = confirmAddItem;
 window.closeAddItemPopup = closeAddItemPopup;
 window.admin_logout = admin_logout;
+window.toggleGenerateButton = toggleGenerateButton;
