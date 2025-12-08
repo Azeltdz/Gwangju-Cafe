@@ -127,7 +127,7 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
             uid: user.uid
         });
         // Success - navigate to home page
-        window.location.href = 'home.html';
+        window.location.href = 'Home.html';
     } catch (error) {
         console.error("Error during signup:", error);
         // Reset button on error
