@@ -48,8 +48,14 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
     e.preventDefault();
     // Disable submit button to prevent double submission
     const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = "Signing up...";
+    // Helper function to reset button
+    const resetButton = () => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    };
     // Get Account Information
     const username = document.getElementById("signupUsername").value.trim();
     const email = document.getElementById("signupEmail").value.trim();
@@ -64,18 +70,22 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
     // Validation - Account Information
     if (password !== confirmPassword) {
         showError("Passwords do not match!");
+        resetButton();
         return;
     }
     if (username.length < 3) {
         showError("Username must be at least 3 characters!");
+        resetButton();
         return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showError("Invalid email format!");
+        resetButton();
         return;
     }
     if (password.length < 6) {
         showError("Password must be at least 6 characters!");
+        resetButton();
         return;
     }
     try {
@@ -86,6 +96,7 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
         
         if (!querySnapshot.empty) {
             showError("Username already taken!");
+            resetButton();
             return;
         }
         // Create user with Firebase Authentication
@@ -115,9 +126,12 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
             username: username,
             uid: user.uid
         });
+        // Success - navigate to home page
         window.location.href = 'home.html';
     } catch (error) {
         console.error("Error during signup:", error);
+        // Reset button on error
+        resetButton();
         // Handle specific Firebase errors
         switch (error.code) {
             case 'auth/email-already-in-use':
