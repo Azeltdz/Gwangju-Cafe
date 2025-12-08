@@ -54,7 +54,7 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
     // Helper function to reset button
     const resetButton = () => {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
+        submitBtn.textContent = "Sign Up";
     };
     // Get Account Information
     const username = document.getElementById("signupUsername").value.trim();
