@@ -192,11 +192,25 @@ function showReceiptPopup(order) {
             </div>
         `;
     });
+    let addressDisplay = 'No address provided';
+    if (order.addressDisplay) {
+        addressDisplay = order.addressDisplay;
+    } else if (order.address && typeof order.address === 'object') {
+        const a = order.address;
+        addressDisplay = [
+            a.houseNumber,
+            a.street,
+            a.barangay ? "Brgy. " + a.barangay : null,
+            "San Luis, Batangas, Philippines"
+        ].filter(Boolean).join(", ");
+    } else if (typeof order.address === 'string') {
+        addressDisplay = order.address;
+    }
     popup.innerHTML = `
         <h2>Order Receipt</h2>
         <div class="receipt_row">
             <span>Order ID:</span>
-            <span>#${order.orderId}</span>
+            <span>${order.orderId}</span>
         </div>
         <div class="receipt_row">
             <span>Date:</span>
@@ -204,7 +218,7 @@ function showReceiptPopup(order) {
         </div>
         <div class="receipt_row">
             <span>Address:</span>
-            <span>${order.address}</span>
+            <span>${addressDisplay}</span>
         </div>
         <hr>
         ${itemsHTML}

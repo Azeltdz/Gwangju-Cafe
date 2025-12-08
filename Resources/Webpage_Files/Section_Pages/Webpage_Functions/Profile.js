@@ -62,7 +62,6 @@ function renderProfile(user) {
         a.firstName,
         a.lastName
     ].filter(Boolean).join(" ");
-
     const fullAddress = [
         a.houseNumber,
         a.street,

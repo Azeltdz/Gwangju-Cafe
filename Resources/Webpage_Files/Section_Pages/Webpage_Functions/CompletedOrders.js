@@ -64,6 +64,20 @@ async function loadCompletedOrders() {
                     itemsHTML += `<li>${i.name} x ${qty} — P ${subtotal}</li>`;
                 });
             }
+            let fullAddress = 'No address provided';
+            if (order.addressDisplay) {
+                fullAddress = order.addressDisplay;
+            } else if (order.address && typeof order.address === 'object') {
+                const a = order.address;
+                fullAddress = [
+                    a.houseNumber,
+                    a.street,
+                    a.barangay ? "Brgy. " + a.barangay : null,
+                    "San Luis, Batangas, Philippines"
+                ].filter(Boolean).join(", ");
+            } else if (typeof order.address === 'string') {
+                fullAddress = order.address;
+            }
             const card = document.createElement("div");
             card.className = "order_card";
             // Add status-specific styling
@@ -76,19 +90,18 @@ async function loadCompletedOrders() {
             card.innerHTML = `
                 <div class="order_header">
                     <div>
-                        <span><b>Order #${order.orderId || 'N/A'}</b></span>
+                        <span><b>Order ${order.orderId || 'N/A'}</b></span>
                         ${statusBadge}
                     </div>
                     <span><b>Customer:</b> ${order.username}</span>
                 </div>
-                <p><b>Email:</b> ${order.userEmail || 'N/A'}</p>
                 <p><b>Ordered:</b> ${order.date || 'N/A'}</p>
-                ${order.receivedAt ? `<p><b>Received:</b> ${new Date(order.receivedAt).toLocaleString()}</p>` : ''}
-                <p><b>Address:</b> ${order.address || 'No address provided'}</p>
+                ${order.receivedAt ? `<p><b>Received:</b> ${new Date(order.receivedAt).toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '-')}</p>` : ''}
+                <p><b>Address:</b> ${fullAddress || 'No address provided'}</p>
                 <p><b>Subtotal:</b> P ${(order.total || 0).toFixed(2)}</p>
                 <p><b>Shipping:</b> P ${(order.shippingFee || 0).toFixed(2)}</p>
                 <p><b>Total:</b> P ${(order.finalTotal || 0).toFixed(2)}</p>
-                ${order.rating > 0 ? `<p><b>Rating:</b> ${'⭐'.repeat(order.rating)} (${order.rating}/5)</p>` : ''}
+                ${order.rating > 0 ? `<p><b>Rating:</b> <span class="safe-font">${'⭐'.repeat(order.rating)} (${order.rating}/5)</span></p>` : ''}
                 <p><b>Items:</b></p>
                 <ul class="order_items">${itemsHTML || '<li>No items</li>'}</ul>
             `;

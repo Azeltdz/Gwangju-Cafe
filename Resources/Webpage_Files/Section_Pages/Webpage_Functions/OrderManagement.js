@@ -68,16 +68,27 @@ async function loadAllCustomerOrders() {
                     itemsHTML += `<li>${item.name} x ${qty} — P ${subtotal}</li>`;
                 });
             }
-            const customerAddress = orderObj.address || "No address provided";
-            
+            let customerAddress = 'No address provided';
+            if (orderObj.addressDisplay) {
+                customerAddress = orderObj.addressDisplay;
+            } else if (orderObj.address && typeof orderObj.address === 'object') {
+                const a = orderObj.address;
+                customerAddress = [
+                    a.houseNumber,
+                    a.street,
+                    a.barangay ? "Brgy. " + a.barangay : null,
+                    "San Luis, Batangas, Philippines"
+                ].filter(Boolean).join(", ");
+            } else if (typeof orderObj.address === 'string') {
+                customerAddress = orderObj.address;
+            }
             card.innerHTML = `
                 <div class="order_header">
-                    <span><b>Order #${orderObj.orderId || 'N/A'}</b></span>
-                    <span><b>Customer:</b> ${orderObj.username}</span>
+                    <span><b>Order: ${orderObj.orderId || 'N/A'}</b></span><br>
+                    <span><b>Customer:</b> ${orderObj.username}</span><br>
                 </div>
-                <p><b>Email:</b> ${orderObj.userEmail || 'N/A'}</p>
                 <p><b>Ordered:</b> ${orderObj.date || 'N/A'}</p>
-                <p><b>Address:</b> ${customerAddress}</p>
+                <p><b>Address:</b><br> ${customerAddress}</p>
                 <p><b>Subtotal:</b> P ${(orderObj.total || 0).toFixed(2)}</p>
                 <p><b>Shipping:</b> P ${(orderObj.shippingFee || 0).toFixed(2)}</p>
                 <p><b>Total:</b> P ${(orderObj.finalTotal || 0).toFixed(2)}</p>
