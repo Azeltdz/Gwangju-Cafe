@@ -5,12 +5,13 @@
         <title>Gwangju Café — Profile</title>
 
         <link rel="stylesheet" href="../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="stylesheet" href="../../Webpage_Style_Sheet/profile.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital@1&display=swap" rel="stylesheet">
     </head>
     
-    <body onload="initProfile()">
+    <body>
         <nav>
             <div class="brand_container">    
                 <img src="../../../Webpage_Images_&_Icons/Interface_Images/Brand_Logo.png">
@@ -23,8 +24,6 @@
         </nav>
 
         <div class="content">
-            <div class="banner"><p>Profile</p></div>
-
             <div class="profile_container" id="profile_container">
                 <p>Loading profile...</p>
             </div>
@@ -42,6 +41,7 @@
                 </div>
         </div>
 
-        <script src="../Webpage_Functions/Profile.js"></script>
+        <script type="module" src="../Webpage_Functions/firebase-config.js"></script>
+        <script type="module" src="../Webpage_Functions/Profile.js"></script>
     </body>
 </html>

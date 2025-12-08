@@ -1,0 +1,89 @@
+.profile_container {
+    max-width: 900px;
+    margin: 40px auto;
+    border-radius: 30px;
+    background-color: #f5f5dc;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transition: 0.4s;
+    padding: 15px;
+}
+
+.profile_box {
+    font-family: 'Intro Rust Lowercase';
+    font-weight: bolder; 
+    background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(165, 123, 99, 0.4);
+    overflow: hidden;
+    position: relative;
+}
+
+.profile_box h2 {
+    background: linear-gradient(to right, beige, bisque);
+    margin: 0;
+    padding: 30px 40px;
+    font-size: 2em;
+    color: #8b6f47;
+    text-align: center;
+    font-weight: 700;
+}
+
+.profile_box hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(139, 111, 71, 0.3), transparent);
+    margin: 0;
+}
+
+.profile_box h4.profile_section_title {
+    color: #fff;
+    font-size: 1.3em;
+    margin: 30px 40px 20px;
+    padding: 15px 20px;
+    background: rgba(255, 245, 220, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 245, 220, 0.3);
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile_box h4.profile_section_title:hover {
+    background: rgba(255, 245, 220, 0.3);
+    transform: translateX(5px);
+}
+
+.profile_box p {
+    color: #fff;
+    font-size: 1em;
+    margin: 15px 40px;
+    padding: 15px 20px;
+    background: rgba(255, 245, 220, 0.15);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 245, 220, 0.25);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile_box p:hover {
+    background: rgba(255, 245, 220, 0.25);
+    transform: translateX(5px);
+}
+
+.profile_box p strong {
+    display: inline-block;
+    min-width: 100px;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.profile_box p:last-child {
+    margin-bottom: 40px;
+}

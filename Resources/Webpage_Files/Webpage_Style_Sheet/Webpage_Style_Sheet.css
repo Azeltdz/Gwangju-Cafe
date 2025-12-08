@@ -64,10 +64,10 @@ body {
     color: rgb(78, 7, 7);
     font-family: 'Intro Rust Thin';
     font-weight: bolder;
-    font-size: 4.5vh;
-    width: 25%;
-    margin: 0 auto;
+    font-size: 36px;
+    margin-inline: auto;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -75,7 +75,7 @@ body {
 
 .banner img {
     margin-top: 40px;
-    width: 80%;
+    width: min(70%, 400px);
 }
 
 .full-line {
@@ -358,7 +358,6 @@ body {
 .auth_container,
 .cart_container, 
 .checkout_container,
-.profile_container,
 .order_container,
 .address_container,
 .completed_container,
@@ -371,12 +370,11 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
     transition: 0.4s;
     padding: 15px;              
-    margin: 20px auto;    
+    margin: 20px auto;
 }
 
 .cart_container, 
 .checkout_container,
-.profile_container,
 .order_container,
 .completed_container,
 .customer_order_container {
@@ -384,7 +382,7 @@ body {
 }
 
 .address_container{
-    width: 75%;
+    width: min(80%, 900px);
 }
 
 .auth_container {
@@ -395,13 +393,14 @@ body {
 }
 
 #signUpForm {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .form_divide {
-    border-radius: 12px;
-    padding: 25px;
+    flex: 1 0 300px;
+    padding: clamp(0px, 1vw, 25px);
+    max-width: 99%;
 }
 
 input {
@@ -527,7 +526,7 @@ input {
 
 .brgy_select,
 .password_input {
-    margin-bottom: 10px;
+    margin-bottom: 30px;
 }
 
 .place_order_button {
@@ -538,7 +537,10 @@ input {
 
 .address_done {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-evenly;
+    text-align: center;
+    margin-inline: auto;
 }
 
 button {
@@ -548,7 +550,7 @@ button {
     color: rgb(78, 7, 7);
     width: 30%;
     padding: 5px;
-    font-size: 2.3vh;
+    font-size: clamp(0.875rem, 0.8036rem + 0.3571vw, 1.125rem);;
     border-radius: 25px;
     cursor: pointer;
     display: inline-block;
@@ -710,19 +712,6 @@ label {
     font-weight: bold;
     border: none;
     border-radius: 10px;
-}
-
-.profile_box { 
-    font-family: 'Intro Rust Lowercase';
-    font-weight: bolder; 
-}
-
-.profile_details {
-    font-size: 2.5vh;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2px 0px;
 }
 
 .indent { margin-left: 20px; }
