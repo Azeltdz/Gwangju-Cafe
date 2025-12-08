@@ -1,4 +1,16 @@
-document.addEventListener("DOMContentLoaded", initInventory);
+import { db } from './firebase-config.js';
+import { 
+    collection, 
+    getDocs, 
+    addDoc, 
+    updateDoc, 
+    deleteDoc, 
+    doc,
+    query,
+    orderBy 
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const INVENTORY_COLLECTION = 'inventory';
 
 function daysUntilExpired(dateStr) {
     if (!dateStr) return Infinity;
@@ -7,12 +19,35 @@ function daysUntilExpired(dateStr) {
     return Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
 }
 
-function initInventory() {
+// Load inventory on page load
+document.addEventListener("DOMContentLoaded", initInventory);
+
+async function initInventory() {
     const container = document.getElementById("inventory_table");
     if (!container) return console.error("ERROR: #inventory_table NOT FOUND");
 
-    const inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-    renderInventoryTable(inventory);
+    await loadAndRenderInventory();
+}
+
+async function loadAndRenderInventory() {
+    try {
+        const inventorySnapshot = await getDocs(
+            query(collection(db, INVENTORY_COLLECTION), orderBy('id'))
+        );
+        
+        const inventory = [];
+        inventorySnapshot.forEach((doc) => {
+            inventory.push({
+                docId: doc.id, // Firestore document ID
+                ...doc.data()
+            });
+        });
+        
+        renderInventoryTable(inventory);
+    } catch (error) {
+        console.error("Error loading inventory:", error);
+        alert("Failed to load inventory. Please try again.");
+    }
 }
 
 function renderInventoryTable(inventory) {
@@ -53,7 +88,7 @@ function renderInventoryTable(inventory) {
             else if (daysLeft <= 7) rowColor = `style="background:#ffe5b3"`; 
 
             html += `
-                <tr ${rowColor}>
+                <tr ${rowColor} data-doc-id="${item.docId}">
                     <td>${item.id}</td>
 
                     <td><input type="text" value="${item.name}" data-field="name" class="inventory_input"></td>
@@ -85,28 +120,36 @@ function renderInventoryTable(inventory) {
     container.innerHTML = html;
 }
 
-function updateItem(index) {
-    let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-    if (!inventory[index]) return;
+async function updateItem(index) {
+    try {
+        const row = document.querySelectorAll("tbody tr")[index];
+        const docId = row.dataset.docId;
+        const inputs = row.querySelectorAll(".inventory_input");
 
-    const row = document.querySelectorAll("tbody tr")[index];
-    const inputs = row.querySelectorAll(".inventory_input");
+        const updates = {};
+        inputs.forEach(input => {
+            const field = input.dataset.field;
+            let value = input.value.trim();
 
-    inputs.forEach(input => {
-        const field = input.dataset.field;
-        let value = input.value.trim();
+            if (field === "price" || field === "stock") {
+                value = Number(value);
+            }
 
-        if (field === "price" || field === "stock") value = Number(value);
+            updates[field] = value;
+        });
 
-        inventory[index][field] = value;
-    });
+        const docRef = doc(db, INVENTORY_COLLECTION, docId);
+        await updateDoc(docRef, updates);
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-    renderInventoryTable(inventory);
-    alert("Item updated successfully!");
+        await loadAndRenderInventory();
+        alert("Item updated successfully!");
+    } catch (error) {
+        console.error("Error updating item:", error);
+        alert("Failed to update item. Please try again.");
+    }
 }
 
-function addInventoryItem() {
+async function addInventoryItem() {
     const name = prompt("Item name:");
     if (!name) return;
 
@@ -118,33 +161,46 @@ function addInventoryItem() {
     const addedDate = new Date().toISOString().split("T")[0];
     let expirationDate = prompt("Expiration date (YYYY-MM-DD):") || addedDate;
 
-    const inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+    try {
+        await addDoc(collection(db, INVENTORY_COLLECTION), {
+            id: Date.now(),
+            name,
+            category,
+            size,
+            price,
+            stock,
+            addedDate,
+            expirationDate
+        });
 
-    inventory.push({
-        id: Date.now(),
-        name,
-        category,
-        size,
-        price,
-        stock,
-        addedDate,
-        expirationDate
-    });
-
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-    renderInventoryTable(inventory);
+        await loadAndRenderInventory();
+        alert("Item added successfully!");
+    } catch (error) {
+        console.error("Error adding item:", error);
+        alert("Failed to add item. Please try again.");
+    }
 }
 
-function deleteInventoryItem(index) {
-    const inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+async function deleteInventoryItem(index) {
     if (!confirm("Remove this item from inventory?")) return;
 
-    inventory.splice(index, 1);
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-    renderInventoryTable(inventory);
+    try {
+        const row = document.querySelectorAll("tbody tr")[index];
+        const docId = row.dataset.docId;
+
+        await deleteDoc(doc(db, INVENTORY_COLLECTION, docId));
+
+        await loadAndRenderInventory();
+        alert("Item deleted successfully!");
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        alert("Failed to delete item. Please try again.");
+    }
 }
 
-function generateInventory() {
+async function generateInventory() {
+    if (!confirm("This will generate test inventory data. Continue?")) return;
+
     let inventory = [];
     let id = 1;
 
@@ -410,11 +466,29 @@ function generateInventory() {
         })
     );
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-    alert("FULL INVENTORY GENERATED (WITH EXPIRATION DATES)!");
+    try {
+        // Add all items to Firestore
+        const promises = inventory.map(item => 
+            addDoc(collection(db, INVENTORY_COLLECTION), item)
+        );
+        await Promise.all(promises);
+
+        await loadAndRenderInventory();
+        alert("FULL INVENTORY GENERATED (WITH EXPIRATION DATES)!");
+    } catch (error) {
+        console.error("Error generating inventory:", error);
+        alert("Failed to generate inventory. Please try again.");
+    }
 }
 
 function admin_logout() {
     localStorage.removeItem("currentUser");
-    window.location.href = "../LogIn.html";
+    window.location.href = "../../../../../index.html";
 }
+
+// Make functions globally accessible
+window.updateItem = updateItem;
+window.addInventoryItem = addInventoryItem;
+window.deleteInventoryItem = deleteInventoryItem;
+window.generateInventory = generateInventory;
+window.admin_logout = admin_logout;

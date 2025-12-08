@@ -92,6 +92,7 @@ window.logout = async function() {
     try {
         await signOut(auth);
         window.location.href = "../../../../index.html";
+        console.log("Click");
     } catch (error) {
         console.error("Error signing out:", error);
         alert("Error logging out: " + error.message);

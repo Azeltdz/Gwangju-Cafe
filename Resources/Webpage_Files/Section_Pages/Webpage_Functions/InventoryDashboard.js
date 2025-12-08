@@ -1,3 +1,21 @@
+import { db } from './firebase-config.js';
+import { 
+    collection, 
+    getDocs, 
+    query,
+    orderBy 
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const INVENTORY_COLLECTION = 'inventory';
+
+// Store chart instances to destroy them before recreating
+let chartInstances = {
+    categoryChart: null,
+    topStockChart: null,
+    lowStockChart: null,
+    valueChart: null
+};
+
 function daysUntilExpired(dateStr) {
     const now = new Date();
     const exp = new Date(dateStr);
@@ -5,41 +23,69 @@ function daysUntilExpired(dateStr) {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
-function loadDashboard() {
-    const inventory = JSON.parse(localStorage.getItem("inventory")) || [];
+async function loadDashboard() {
+    try {
+        // Fetch inventory from Firestore
+        const inventorySnapshot = await getDocs(
+            query(collection(db, INVENTORY_COLLECTION), orderBy('id'))
+        );
+        
+        const inventory = [];
+        inventorySnapshot.forEach((doc) => {
+            inventory.push({
+                docId: doc.id,
+                ...doc.data()
+            });
+        });
 
-    const totalItems = inventory.length;
-    const totalStock = inventory.reduce((sum, item) => sum + item.stock, 0);
-    const lowStock = inventory.filter(item => item.stock <= 10);
-    const totalValue = inventory.reduce((sum, item) => sum + (item.stock * item.price), 0);
+        // Calculate dashboard metrics
+        const totalItems = inventory.length;
+        const totalStock = inventory.reduce((sum, item) => sum + item.stock, 0);
+        const lowStock = inventory.filter(item => item.stock <= 10);
+        const totalValue = inventory.reduce((sum, item) => sum + (item.stock * item.price), 0);
 
-    const expired = inventory.filter(item =>
-        item.expirationDate && daysUntilExpired(item.expirationDate) <= 0
-    );
+        const expired = inventory.filter(item =>
+            item.expirationDate && daysUntilExpired(item.expirationDate) <= 0
+        );
 
-    const expiringSoon = inventory.filter(item => {
-        if (!item.expirationDate) return false;
-        const days = daysUntilExpired(item.expirationDate);
-        return days > 0 && days <= 7;
-    });
+        const expiringSoon = inventory.filter(item => {
+            if (!item.expirationDate) return false;
+            const days = daysUntilExpired(item.expirationDate);
+            return days > 0 && days <= 7;
+        });
 
-    document.querySelector("#totalItemsCard p").textContent = totalItems;
-    document.querySelector("#totalStockCard p").textContent = totalStock;
-    document.querySelector("#lowStockCard p").textContent = lowStock.length;
-    document.querySelector("#totalValueCard p").textContent = "P " + totalValue;
-    document.querySelector("#expirationCard p").textContent =
-        `Expired: ${expired.length} ∙ Soon: ${expiringSoon.length}`;
+        // Update dashboard cards
+        document.querySelector("#totalItemsCard p").textContent = totalItems;
+        document.querySelector("#totalStockCard p").textContent = totalStock;
+        document.querySelector("#lowStockCard p").textContent = lowStock.length;
+        document.querySelector("#totalValueCard p").textContent = "P " + totalValue;
+        document.querySelector("#expirationCard p").textContent =
+            `Expired: ${expired.length} ∙ Soon: ${expiringSoon.length}`;
 
-    drawCategoryChart(inventory);
-    drawTopStockChart(inventory);
-    drawLowStockChart(inventory);
-    drawValueChart(inventory);
+        // Draw charts
+        drawCategoryChart(inventory);
+        drawTopStockChart(inventory);
+        drawLowStockChart(inventory);
+        drawValueChart(inventory);
+    } catch (error) {
+        console.error("Error loading dashboard:", error);
+        
+        // Only show alert if it's not a Chart.js reuse error
+        if (!error.message.includes('Canvas is already in use')) {
+            alert("Failed to load dashboard data. Please refresh the page.");
+        }
+    }
 }
 
 function drawLowStockChart(inventory) {
+    // Destroy existing chart if it exists
+    if (chartInstances.lowStockChart) {
+        chartInstances.lowStockChart.destroy();
+    }
+
     const lowest15 = [...inventory].sort((a, b) => a.stock - b.stock).slice(0, 15);
 
-    new Chart(document.getElementById("lowStockChart"), {
+    chartInstances.lowStockChart = new Chart(document.getElementById("lowStockChart"), {
         type: "bar",
         data: {
             labels: lowest15.map(i => `${i.name} (${i.size})`),
@@ -54,6 +100,11 @@ function drawLowStockChart(inventory) {
 }
 
 function drawCategoryChart(inventory) {
+    // Destroy existing chart if it exists
+    if (chartInstances.categoryChart) {
+        chartInstances.categoryChart.destroy();
+    }
+
     const categories = {};
 
     inventory.forEach(item => {
@@ -61,7 +112,7 @@ function drawCategoryChart(inventory) {
         categories[item.category]++;
     });
 
-    new Chart(document.getElementById("categoryChart"), {
+    chartInstances.categoryChart = new Chart(document.getElementById("categoryChart"), {
         type: "doughnut",
         data: {
             labels: Object.keys(categories),
@@ -74,9 +125,14 @@ function drawCategoryChart(inventory) {
 }
 
 function drawTopStockChart(inventory) {
+    // Destroy existing chart if it exists
+    if (chartInstances.topStockChart) {
+        chartInstances.topStockChart.destroy();
+    }
+
     const top15 = [...inventory].sort((a, b) => b.stock - a.stock).slice(0, 15);
 
-    new Chart(document.getElementById("topStockChart"), {
+    chartInstances.topStockChart = new Chart(document.getElementById("topStockChart"), {
         type: "bar",
         data: {
             labels: top15.map(i => `${i.name} (${i.size})`),
@@ -91,6 +147,11 @@ function drawTopStockChart(inventory) {
 }
 
 function drawValueChart(inventory) {
+    // Destroy existing chart if it exists
+    if (chartInstances.valueChart) {
+        chartInstances.valueChart.destroy();
+    }
+
     const valueMap = {};
 
     inventory.forEach(item => {
@@ -98,7 +159,7 @@ function drawValueChart(inventory) {
         valueMap[item.category] += item.stock * item.price;
     });
 
-    new Chart(document.getElementById("valueChart"), {
+    chartInstances.valueChart = new Chart(document.getElementById("valueChart"), {
         type: "bar",
         data: {
             labels: Object.keys(valueMap),
@@ -113,3 +174,9 @@ function drawValueChart(inventory) {
         }
     });
 }
+
+// Load dashboard when page loads
+document.addEventListener("DOMContentLoaded", loadDashboard);
+
+// Make loadDashboard globally accessible if needed
+window.loadDashboard = loadDashboard;

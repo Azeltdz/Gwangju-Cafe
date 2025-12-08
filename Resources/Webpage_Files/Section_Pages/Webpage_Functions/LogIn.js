@@ -1,22 +1,66 @@
-// LogIn.js - Complete Firebase Authentication with Firestore
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+// LogIn.js - Firebase Authentication with Firestore
+import { auth, db } from './firebase-config.js';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAQxQi9bSrUvs29kZC6IkwbQlpAQeLP-Sc",
-    authDomain: "gwangju-cafe.firebaseapp.com",
-    projectId: "gwangju-cafe",
-    storageBucket: "gwangju-cafe.firebasestorage.app",
-    messagingSenderId: "190764000358",
-    appId: "1:190764000358:web:13d4871165b3f2a6e439a7"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Auto-create admin account if it doesn't exist
+(async function createAdminAccount() {
+    try {
+        // Check if admin username exists in Firestore
+        const usernamesRef = collection(db, "usernames");
+        const q = query(usernamesRef, where("username", "==", "admin_at_gwangju"));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            // Admin doesn't exist, create admin account
+            const adminEmail = "admingwangju@gmail.com";
+            const adminPassword = "admin123";
+            const adminUsername = "admin_at_gwangju";
+            
+            try {
+                // Create admin in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+                const adminUser = userCredential.user;
+                
+                // Create admin document in Firestore
+                await setDoc(doc(db, "users", adminUser.uid), {
+                    email: adminEmail,
+                    username: adminUsername,
+                    role: "admin",
+                    address: {
+                        firstName: "Admin",
+                        lastName: "Gwangju",
+                        houseNumber: "",
+                        street: "",
+                        barangay: ""
+                    },
+                    orders: [],
+                    cart: [],
+                    createdAt: new Date().toISOString()
+                });
+                
+                // Create username mapping
+                await setDoc(doc(db, "usernames", adminUsername), {
+                    username: adminUsername,
+                    uid: adminUser.uid
+                });
+                
+                console.log("Admin account created successfully");
+            } catch (authError) {
+                // If admin email already exists in Auth, just log it
+                if (authError.code === 'auth/email-already-in-use') {
+                    console.log("Admin account already exists in Firebase Auth");
+                } else {
+                    console.error("Error creating admin account:", authError);
+                }
+            }
+        } else {
+            console.log("Admin account already exists");
+        }
+    } catch (error) {
+        console.error("Error checking/creating admin account:", error);
+    }
+})();
 
 // Toggle Password Visibility with SVG
 const togglePassword = document.getElementById("togglePassword");
