@@ -1,68 +1,109 @@
-document.addEventListener("DOMContentLoaded", loadSalesDashboard);
 
-function loadSalesDashboard() {
-    const users = JSON.parse(localStorage.getItem("users")) || {};
-    let allOrders = [];
+import { db } from '../../../firebase-config.js';
+import { 
+    collection, 
+    getDocs, 
+    query,
+    orderBy 
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-    Object.values(users).forEach(user => {
-        if (!user.orders) return;
-        user.orders.forEach(order => {
-            if (order.status === "Completed" || order.status === "Received") {
-                allOrders.push(order);
+const USERS_COLLECTION = 'users';
+const INVENTORY_COLLECTION = 'inventory';
+// Store chart instances to destroy them before recreating
+let chartInstances = {
+    salesCategoryChart: null,
+    topSellingChart: null,
+    dailySalesChart: null
+};
+async function loadSalesDashboard() {
+    try {
+        // Fetch all users from Firestore
+        const usersSnapshot = await getDocs(collection(db, USERS_COLLECTION));
+        let allOrders = [];
+        // Collect all completed/received orders
+        usersSnapshot.forEach((doc) => {
+            const userData = doc.data();
+            
+            if (userData.orders && Array.isArray(userData.orders)) {
+                userData.orders.forEach(order => {
+                    if (order.status === "Completed" || order.status === "Received") {
+                        allOrders.push(order);
+                    }
+                });
             }
         });
-    });
-
-    const totalOrders = allOrders.length;
-    let totalItemsSold = 0;
-    let totalRevenue = 0;
-
-    let productSales = {};
-    let categoryRevenue = {};
-    let dailySales = {};
-
-    allOrders.forEach(order => {
-        totalRevenue += order.finalTotal;
-
-        let parts = order.date.split("∙");
-        let dateKey = `${parts[0]}-${parts[1]}-${parts[2]}`;
-
-        if (!dailySales[dateKey]) dailySales[dateKey] = 0;
-        dailySales[dateKey] += order.finalTotal;
-
-        order.items.forEach(item => {
-            totalItemsSold += item.quantity;
-
-            let cleanName = item.name.split("∙")[0].trim();
-
-            if (!productSales[cleanName]) productSales[cleanName] = 0;
-            productSales[cleanName] += item.quantity;
-
-            const inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-            const baseName = item.name.split("∙")[0].trim();
-            const found = inventory.find(prod => prod.name === baseName);
-            let category = found ? found.category : "Other";
-
-            if (!categoryRevenue[category]) categoryRevenue[category] = 0;
-            categoryRevenue[category] += item.productSubtotal;
+        // Fetch inventory for category mapping
+        const inventorySnapshot = await getDocs(
+            query(collection(db, INVENTORY_COLLECTION), orderBy('id'))
+        );
+        const inventory = [];
+        inventorySnapshot.forEach((doc) => {
+            inventory.push(doc.data());
         });
-    });
+        // Calculate sales metrics
+        const totalOrders = allOrders.length;
+        let totalItemsSold = 0;
+        let totalRevenue = 0;
+        let productSales = {};
+        let categoryRevenue = {};
+        let dailySales = {};
 
-    let topProduct = Object.keys(productSales).sort((a,b) => productSales[b] - productSales[a])[0] || "None";
+        allOrders.forEach(order => {
+            totalRevenue += order.finalTotal || 0;
+            // Parse date for daily sales
+            if (order.date) {
+                let parts = order.date.split("∙");
+                let dateKey = `${parts[0]}-${parts[1]}-${parts[2]}`;
 
-    document.querySelector("#totalOrdersCard p").textContent = totalOrders;
-    document.querySelector("#totalItemsSoldCard p").textContent = totalItemsSold;
-    document.querySelector("#totalRevenueCard p").textContent = "P " + String(totalRevenue);
-    document.querySelector("#avgOrderValueCard p").textContent = totalOrders ? "P " + (totalRevenue / totalOrders).toFixed(2) : "P 0";
-    document.querySelector("#topProductCard p").textContent = topProduct;
+                if (!dailySales[dateKey]) dailySales[dateKey] = 0;
+                dailySales[dateKey] += order.finalTotal || 0;
+            }
+            // Process items
+            if (order.items && Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    totalItemsSold += item.quantity || 0;
 
-    drawSalesCategoryChart(categoryRevenue);
-    drawTopSellingChart(productSales);
-    drawDailySalesChart(dailySales);
+                    let cleanName = item.name.split("∙")[0].trim();
+                    // Track product sales
+                    if (!productSales[cleanName]) productSales[cleanName] = 0;
+                    productSales[cleanName] += item.quantity || 0;
+                    // Find category from inventory
+                    const baseName = item.name.split("∙")[0].trim();
+                    const found = inventory.find(prod => prod.name === baseName);
+                    let category = found ? found.category : "Other";
+                    // Track category revenue
+                    if (!categoryRevenue[category]) categoryRevenue[category] = 0;
+                    categoryRevenue[category] += item.productSubtotal || 0;
+                });
+            }
+        });
+        // Find top product
+        let topProduct = Object.keys(productSales).sort((a, b) => 
+            productSales[b] - productSales[a]
+        )[0] || "None";
+        // Update dashboard cards
+        document.querySelector("#totalOrdersCard p").textContent = totalOrders;
+        document.querySelector("#totalItemsSoldCard p").textContent = totalItemsSold;
+        document.querySelector("#totalRevenueCard p").textContent = "P " + String(totalRevenue);
+        document.querySelector("#avgOrderValueCard p").textContent = totalOrders 
+            ? "P " + (totalRevenue / totalOrders).toFixed(2) 
+            : "P 0";
+        document.querySelector("#topProductCard p").textContent = topProduct;
+        // Draw charts
+        drawSalesCategoryChart(categoryRevenue);
+        drawTopSellingChart(productSales);
+        drawDailySalesChart(dailySales);
+    } catch (error) {
+        console.error("Error loading sales dashboard:", error);
+        alert("Failed to load sales dashboard. Please refresh the page.");
+    }
 }
-
 function drawSalesCategoryChart(categoryRevenue) {
-    new Chart(document.getElementById("salesCategoryChart"), {
+    // Destroy existing chart if it exists
+    if (chartInstances.salesCategoryChart) {
+        chartInstances.salesCategoryChart.destroy();
+    }
+    chartInstances.salesCategoryChart = new Chart(document.getElementById("salesCategoryChart"), {
         type: "doughnut",
         data: {
             labels: Object.keys(categoryRevenue),
@@ -73,11 +114,14 @@ function drawSalesCategoryChart(categoryRevenue) {
         }
     });
 }
-
 function drawTopSellingChart(productSales) {
-    const sorted = Object.entries(productSales).sort((a,b) => b[1] - a[1]).slice(0, 10);
+    // Destroy existing chart if it exists
+    if (chartInstances.topSellingChart) {
+        chartInstances.topSellingChart.destroy();
+    }
+    const sorted = Object.entries(productSales).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
-    new Chart(document.getElementById("topSellingChart"), {
+    chartInstances.topSellingChart = new Chart(document.getElementById("topSellingChart"), {
         type: "bar",
         data: {
             labels: sorted.map(i => i[0]),
@@ -92,10 +136,14 @@ function drawTopSellingChart(productSales) {
 }
 
 function drawDailySalesChart(dailySales) {
+    // Destroy existing chart if it exists
+    if (chartInstances.dailySalesChart) {
+        chartInstances.dailySalesChart.destroy();
+    }
     const labels = Object.keys(dailySales).sort();
     const values = labels.map(k => dailySales[k]);
 
-    new Chart(document.getElementById("dailySalesChart"), {
+    chartInstances.dailySalesChart = new Chart(document.getElementById("dailySalesChart"), {
         type: "line",
         data: {
             labels: labels,
@@ -110,3 +158,13 @@ function drawDailySalesChart(dailySales) {
         }
     });
 }
+
+function admin_logout() {
+    localStorage.removeItem("currentUser");
+    window.location.href = "../LogIn.html";
+}
+// Load dashboard when page loads
+document.addEventListener("DOMContentLoaded", loadSalesDashboard);
+// Make functions globally accessible
+window.loadSalesDashboard = loadSalesDashboard;
+window.admin_logout = admin_logout;

@@ -1,42 +1,53 @@
-document.addEventListener("DOMContentLoaded", initSales);
+import { db } from './firebase-config.js';
+import { 
+    collection, 
+    getDocs
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-function initSales() {
+const USERS_COLLECTION = 'users';
+
+async function initSales() {
     const container = document.getElementById("sales_table");
-
     if (!container) {
         console.error("ERROR: #sales_table NOT FOUND");
         return;
     }
+    try {
+        // Fetch all users from Firestore
+        const usersSnapshot = await getDocs(collection(db, USERS_COLLECTION));
+        let sales = [];
+        // Loop through users and collect completed/received orders
+        usersSnapshot.forEach((userDoc) => {
+            const userData = userDoc.data();
+            const username = userData.username || userDoc.id;
 
-    const users = JSON.parse(localStorage.getItem("users")) || {};
-    let sales = [];
+            if (!userData || !userData.orders || !Array.isArray(userData.orders)) return;
 
-    Object.keys(users).forEach(username => {
-        const user = users[username];
-        if (!user || !user.orders) return;
-
-        user.orders.forEach((order, orderIndex) => {
-            if (order.status === "Completed" || order.status === "Received") {
-                order.items.forEach(item => {
-
-                    sales.push({
-                        orderId: `ORD-${username}-${orderIndex}`,
-                        date: order.date,
-                        name: item.name,
-                        size: item.size || "",
-                        price: item.price,
-                        qty: item.quantity,
-                        subtotal: item.price * item.quantity
-                    });
-
-                });
-            }
+            userData.orders.forEach((order, orderIndex) => {
+                if (order.status === "Completed" || order.status === "Received") {
+                    
+                    if (order.items && Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            sales.push({
+                                orderId: `ORD-${username}-${orderIndex}`,
+                                date: order.date || 'N/A',
+                                name: item.name || 'Unknown',
+                                size: item.size || "",
+                                price: item.price || 0,
+                                qty: item.quantity || 0,
+                                subtotal: (item.price || 0) * (item.quantity || 0)
+                            });
+                        });
+                    }
+                }
+            });
         });
-    });
-
-    renderSalesTable(sales);
+        renderSalesTable(sales);
+    } catch (error) {
+        console.error("Error loading sales:", error);
+        container.innerHTML = "<p>Failed to load sales data. Please refresh the page.</p>";
+    }
 }
-
 function renderSalesTable(sales) {
     const container = document.getElementById("sales_table");
 
@@ -55,7 +66,6 @@ function renderSalesTable(sales) {
             </thead>
             <tbody>
     `;
-
     if (sales.length === 0) {
         html += `
             <tr>
@@ -70,7 +80,6 @@ function renderSalesTable(sales) {
                 .replace("∙", "")
                 .replace("•", "")
                 .trim();
-
             let size = item.size || "";
 
             const sizePatterns = [
@@ -78,11 +87,9 @@ function renderSalesTable(sales) {
                 "Regular", "Spicy", "Original",
                 "Medium", "Large", "XL"
             ];
-
             sizePatterns.forEach(s => {
                 if (productName.toLowerCase().includes(s.toLowerCase())) {
                     size = s;
-
                     productName = productName
                         .replace(`(${s})`, "")
                         .replace(`-${s}`, "")
@@ -94,7 +101,6 @@ function renderSalesTable(sales) {
                         .trim();
                 }
             });
-
             html += `
                 <tr>
                     <td>${item.orderId}</td>
@@ -108,11 +114,18 @@ function renderSalesTable(sales) {
             `;
         });
     }
-
     html += `
             </tbody>
         </table>
     `;
-
     container.innerHTML = html;
 }
+function admin_logout() {
+    localStorage.removeItem("currentUser");
+    window.location.href = "../LogIn.html";
+}
+// Load sales when page loads
+document.addEventListener("DOMContentLoaded", initSales);
+// Make functions globally accessible
+window.initSales = initSales;
+window.admin_logout = admin_logout;
