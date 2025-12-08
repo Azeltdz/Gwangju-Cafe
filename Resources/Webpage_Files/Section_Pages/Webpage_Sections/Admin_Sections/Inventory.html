@@ -5,14 +5,14 @@
         <title>Gwangju Café — Inventory</title>
     
         <link rel="stylesheet" href="../../../Webpage_Style_Sheet/Webpage_Style_Sheet.css">
+        <link rel="stylesheet" href="../../../Webpage_Style_Sheet/inventory.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital@1&display=swap" rel="stylesheet">
+        <style>
+            body { background: linear-gradient(to bottom, rgb(180, 220, 255), aliceblue, #ffffff);}
+        </style>
     </head>
-
-    <style>
-        body {background: linear-gradient(to bottom, rgb(180, 220, 255), aliceblue, #ffffff)};
-    </style>
 
     <body>
         <nav>
@@ -31,14 +31,13 @@
 
         <div class="content">
             <div class="banner">
-                <p>Inventory</p>
+                <p>Inventory Management</p>
             </div>              
 
             <div class="inventory_box">
                 <div class="inventory_header">
-                    <h3>Inventory Management</h3>
-                    <button class="add_button" onclick="addInventoryItem()">Add Item</button>
-                    <button onclick="generateInventory()">Generate Items ∙For Testing Only∙</button>
+                    <button class="add_button" id="addBtn" onclick="addInventoryItem()">Add Item</button>
+                    <button id="generateBtn" onclick="toggleGenerateButton()">Generate Inventory</button>
                 </div>
                 <br><br><br>
 
@@ -46,7 +45,7 @@
             </div>
         </div>
 
-        <div class="info_container" >    
+        <div class="info_container">    
             <div style="margin: 0 auto;" class="infolinks_container">
                 <button class="logout_button" onclick="admin_logout()">Log Out</button>
             </div>

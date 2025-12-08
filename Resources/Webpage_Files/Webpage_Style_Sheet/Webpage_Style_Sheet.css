@@ -383,7 +383,14 @@ body {
 .order_container,
 .completed_container,
 .customer_order_container {
-    width: 40%;
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    width: min(80%, 1000px);
+}
+
+.completed_container > div {
+    border: 1px solid #333;
 }
 
 .address_container{
@@ -644,7 +651,8 @@ label {
 .order_meta, .order_status {
     display:flex; 
     justify-content:space-between; 
-    align-items:center; 
+    align-items:center;
+    flex-wrap: wrap;
 }
             
 .items_list { 
@@ -698,6 +706,18 @@ label {
     display: flex;
     justify-content: space-between;
     margin: 5px 0;
+}
+.receipt_address {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.receipt_address span:last-child {
+    text-align: right;
+    max-width: 60%;
+    word-wrap: break-word;
 }
 
 .receipt_total {

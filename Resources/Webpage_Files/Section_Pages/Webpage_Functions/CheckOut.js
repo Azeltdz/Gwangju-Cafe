@@ -143,7 +143,8 @@ async function handlePlaceOrder(e) {
             status: "Pending",
             rating: 0,
             userId: currentUser.uid,
-            userEmail: currentUser.email
+            userEmail: currentUser.email,
+            username: userData.username || currentUser.displayName || "Unknown User"
         };
         // Update user document with new order and empty cart
         await updateDoc(userDocRef, {
@@ -206,17 +207,25 @@ function showReceiptPopup(order) {
     } else if (typeof order.address === 'string') {
         addressDisplay = order.address;
     }
+    // Get username
+    const username = order.username || userData?.username || currentUser?.displayName || "Unknown User";
+
     popup.innerHTML = `
         <h2>Order Receipt</h2>
-        <div class="receipt_row">
-            <span>Order ID:</span>
-            <span>${order.orderId}</span>
-        </div>
         <div class="receipt_row">
             <span>Date:</span>
             <span>${order.date}</span>
         </div>
+        <hr>
         <div class="receipt_row">
+            <span>Order ID:</span>
+            <span>${order.orderId}</span>
+        </div>
+        <div class="receipt_row receipt_address">
+            <span>User:</span>
+            <span>${username}</span>
+        </div>
+        <div class="receipt_row receipt_address">
             <span>Address:</span>
             <span>${addressDisplay}</span>
         </div>

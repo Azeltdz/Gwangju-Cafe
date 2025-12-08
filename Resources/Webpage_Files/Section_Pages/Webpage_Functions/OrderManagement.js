@@ -87,7 +87,7 @@ async function loadAllCustomerOrders() {
                     <span><b>Order: ${orderObj.orderId || 'N/A'}</b></span><br>
                     <span><b>Customer:</b> ${orderObj.username}</span><br>
                 </div>
-                <p><b>Ordered:</b> ${orderObj.date || 'N/A'}</p>
+                <p><b>Ordered Date:</b> ${orderObj.date || 'N/A'}</p>
                 <p><b>Address:</b><br> ${customerAddress}</p>
                 <p><b>Subtotal:</b> P ${(orderObj.total || 0).toFixed(2)}</p>
                 <p><b>Shipping:</b> P ${(orderObj.shippingFee || 0).toFixed(2)}</p>
@@ -106,7 +106,7 @@ async function loadAllCustomerOrders() {
                     </div>
                     <button class="update_status_btn"
                         onclick="updateOrderStatus('${orderObj.userId}', ${orderObj.orderIndex}, ${displayIndex})">
-                        Update Status
+                        Update
                     </button>
                 </div>
             `;
