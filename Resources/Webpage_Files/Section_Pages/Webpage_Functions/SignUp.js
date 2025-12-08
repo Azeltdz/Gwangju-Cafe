@@ -12,12 +12,10 @@ const firebaseConfig = {
     messagingSenderId: "190764000358",
     appId: "1:190764000358:web:13d4871165b3f2a6e439a7"
 };
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 // Toggle Password Visibility for both password fields
 const setupPasswordToggle = (toggleId, password) => {
     const togglePassword = document.getElementById(toggleId);
@@ -42,11 +40,9 @@ const setupPasswordToggle = (toggleId, password) => {
         });
     }
 };
-
 // Setup toggles for password and confirm password
 setupPasswordToggle("togglePassword", "password");
 setupPasswordToggle("toggleConfirmPassword", "confirmPassword");
-
 // Complete Sign Up Form Handler
 document.getElementById("signUpForm").addEventListener("submit", async function(e) {
     e.preventDefault();
@@ -70,22 +66,18 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
         showError("Passwords do not match!");
         return;
     }
-
     if (username.length < 3) {
         showError("Username must be at least 3 characters!");
         return;
     }
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showError("Invalid email format!");
         return;
     }
-
     if (password.length < 6) {
         showError("Password must be at least 6 characters!");
         return;
     }
-
     try {
         // Check if username already exists in Firestore
         const usernamesRef = collection(db, "usernames");
@@ -118,18 +110,14 @@ document.getElementById("signUpForm").addEventListener("submit", async function(
             orders: [],
             createdAt: new Date().toISOString()
         });
-
         // Store username in separate collection for uniqueness check
         await setDoc(doc(db, "usernames", username), {
             username: username,
             uid: user.uid
         });
-
         window.location.href = 'home.html';
-
     } catch (error) {
         console.error("Error during signup:", error);
-        
         // Handle specific Firebase errors
         switch (error.code) {
             case 'auth/email-already-in-use':

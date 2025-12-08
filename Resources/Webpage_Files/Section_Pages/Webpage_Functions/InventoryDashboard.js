@@ -71,7 +71,6 @@ async function loadDashboard() {
         }
     }
 }
-
 function drawLowStockChart(inventory) {
     // Destroy existing chart if it exists
     if (chartInstances.lowStockChart) {
@@ -114,7 +113,6 @@ function drawCategoryChart(inventory) {
         }
     });
 }
-
 function drawTopStockChart(inventory) {
     // Destroy existing chart if it exists
     if (chartInstances.topStockChart) {
@@ -140,7 +138,6 @@ function drawValueChart(inventory) {
     if (chartInstances.valueChart) {
         chartInstances.valueChart.destroy();
     }
-
     const valueMap = {};
     inventory.forEach(item => {
         if (!valueMap[item.category]) valueMap[item.category] = 0;
@@ -161,7 +158,6 @@ function drawValueChart(inventory) {
         }
     });
 }
-
 async function admin_logout() {
     try {
         await signOut(auth);
@@ -173,7 +169,6 @@ async function admin_logout() {
         window.location.href = "../../../../../index.html";
     }
 }
-
 // Load dashboard when page loads
 document.addEventListener("DOMContentLoaded", loadDashboard);
 // Make loadDashboard globally accessible if needed

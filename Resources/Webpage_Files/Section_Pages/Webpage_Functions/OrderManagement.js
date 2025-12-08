@@ -1,16 +1,24 @@
-import { db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import { 
     collection, 
     getDocs, 
     doc,
+    getDoc,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
 const USERS_COLLECTION = 'users';
 
 async function loadAllCustomerOrders() {
     const container = document.getElementById("customer_order_container");
+    
+    if (!container) {
+        console.error("Container element not found");
+        return;
+    }
     container.innerHTML = "<p>Loading orders...</p>";
+    
     try {
         // Fetch all users from Firestore
         const usersSnapshot = await getDocs(collection(db, USERS_COLLECTION));
@@ -18,12 +26,12 @@ async function loadAllCustomerOrders() {
         // Loop through each user and collect non-completed orders
         usersSnapshot.forEach((userDoc) => {
             const userData = userDoc.data();
-            const username = userData.username || userDoc.id;
+            const username = userData.username || userData.email || userDoc.id;
             const userId = userDoc.id;
 
             if (userData.orders && Array.isArray(userData.orders)) {
                 userData.orders.forEach((order, index) => {
-                    if (order.status !== "Completed") {
+                    if (order.status !== "Completed" && order.status !== "Received") {
                         allOrders.push({
                             userId,
                             username,
@@ -39,6 +47,12 @@ async function loadAllCustomerOrders() {
             container.innerHTML = "<p>No active orders.</p>";
             return;
         }
+        // Sort orders by date (most recent first)
+        allOrders.sort((a, b) => {
+            const dateA = new Date(a.timestamp || a.date);
+            const dateB = new Date(b.timestamp || b.date);
+            return dateB - dateA;
+        });
         container.innerHTML = "";
         // Render each order
         allOrders.forEach((orderObj, displayIndex) => {
@@ -48,43 +62,46 @@ async function loadAllCustomerOrders() {
             let itemsHTML = "";
             if (orderObj.items && Array.isArray(orderObj.items)) {
                 orderObj.items.forEach(item => {
-                    itemsHTML += `<li>${item.name} x ${item.quantity} — P ${item.price}</li>`;
+                    const qty = Number(item.quantity || 1);
+                    const price = Number(item.price || 0);
+                    const subtotal = (price * qty).toFixed(2);
+                    itemsHTML += `<li>${item.name} x ${qty} — P ${subtotal}</li>`;
                 });
             }
-            const a = orderObj.address || {};
-            const customerAddress = [
-                a.houseNumber,
-                a.street,
-                a.barangay,
-                "San Luis, Batangas, Philippines"
-            ].filter(Boolean).join(", ") || "<i>No address provided</i>";
+            const customerAddress = orderObj.address || "No address provided";
+            
             card.innerHTML = `
                 <div class="order_header">
-                    <span><b>User:</b> ${orderObj.username}</span><br><br>
-                    <span>Ordered Date: ${orderObj.date || 'N/A'}</span>
+                    <span><b>Order #${orderObj.orderId || 'N/A'}</b></span>
+                    <span><b>Customer:</b> ${orderObj.username}</span>
                 </div>
+                <p><b>Email:</b> ${orderObj.userEmail || 'N/A'}</p>
+                <p><b>Ordered:</b> ${orderObj.date || 'N/A'}</p>
                 <p><b>Address:</b> ${customerAddress}</p>
-                <p><b>Total:</b> P ${orderObj.finalTotal || 0}</p>
+                <p><b>Subtotal:</b> P ${(orderObj.total || 0).toFixed(2)}</p>
+                <p><b>Shipping:</b> P ${(orderObj.shippingFee || 0).toFixed(2)}</p>
+                <p><b>Total:</b> P ${(orderObj.finalTotal || 0).toFixed(2)}</p>
                 <p><b>Items:</b></p>
                 <ul class="order_items">${itemsHTML || '<li>No items</li>'}</ul>
                 <div class="order_status">
                     <div>
                         <b>Status:</b>
                         <select id="status_display_${displayIndex}">
-                            <option ${orderObj.status === "Pending" ? "selected" : ""}>Pending</option>
-                            <option ${orderObj.status === "Preparing" ? "selected" : ""}>Preparing</option>
-                            <option ${orderObj.status === "Out For Delivery" ? "selected" : ""}>Out For Delivery</option>
-                            <option ${orderObj.status === "Completed" ? "selected" : ""}>Completed</option>
+                            <option value="Pending" ${orderObj.status === "Pending" ? "selected" : ""}>Pending</option>
+                            <option value="Preparing" ${orderObj.status === "Preparing" ? "selected" : ""}>Preparing</option>
+                            <option value="Out For Delivery" ${orderObj.status === "Out For Delivery" ? "selected" : ""}>Out For Delivery</option>
+                            <option value="Completed" ${orderObj.status === "Completed" ? "selected" : ""}>Completed</option>
                         </select>
                     </div>
                     <button class="update_status_btn"
                         onclick="updateOrderStatus('${orderObj.userId}', ${orderObj.orderIndex}, ${displayIndex})">
-                        Update
+                        Update Status
                     </button>
                 </div>
             `;
             container.appendChild(card);
         });
+        
     } catch (error) {
         console.error("Error loading customer orders:", error);
         container.innerHTML = "<p>Failed to load orders. Please refresh the page.</p>";
@@ -94,34 +111,47 @@ async function loadAllCustomerOrders() {
 async function updateOrderStatus(userId, orderIndex, displayIndex) {
     try {
         // Get the new status from the dropdown
-        const newStatus = document.getElementById(`status_display_${displayIndex}`).value;
-        // Get the user document
-        const userDocRef = doc(db, USERS_COLLECTION, userId);
-        const userSnapshot = await getDocs(collection(db, USERS_COLLECTION));
+        const statusDropdown = document.getElementById(`status_display_${displayIndex}`);
         
-        let userData = null;
-        userSnapshot.forEach((doc) => {
-            if (doc.id === userId) {
-                userData = doc.data();
-            }
-        });
-        if (!userData || !userData.orders || !userData.orders[orderIndex]) {
+        if (!statusDropdown) {
+            alert("Status dropdown not found.");
+            return;
+        }
+        const newStatus = statusDropdown.value;
+        // Get the user document reference
+        const userDocRef = doc(db, USERS_COLLECTION, userId);
+        // Fetch the current user data using getDoc (not getDocs)
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (!userDocSnap.exists()) {
+            alert("User document not found.");
+            return;
+        }
+        const userData = userDocSnap.data();
+        // Validate that the order exists
+        if (!userData.orders || !Array.isArray(userData.orders) || !userData.orders[orderIndex]) {
             alert("Order not found.");
             return;
         }
-        // Update the order status
-        userData.orders[orderIndex].status = newStatus;
-        // Update Firestore
+        // Create a copy of the orders array
+        const updatedOrders = [...userData.orders];
+        // Update the specific order's status
+        updatedOrders[orderIndex] = {
+            ...updatedOrders[orderIndex],
+            status: newStatus,
+            statusUpdatedAt: new Date().toISOString()
+        };
+        // Update Firestore with the modified orders array
         await updateDoc(userDocRef, {
-            orders: userData.orders
+            orders: updatedOrders
         });
         // Show appropriate message
         if (newStatus === "Completed") {
-            alert("Order marked Completed and moved out of queue.");
+            alert("Order marked as Completed and removed from active orders.");
         } else {
-            alert("Order status updated.");
+            alert(`Order status updated to: ${newStatus}`);
         }
-        // Reload orders
+        // Reload orders to reflect changes
         await loadAllCustomerOrders();
     } catch (error) {
         console.error("Error updating order status:", error);
@@ -132,11 +162,10 @@ async function updateOrderStatus(userId, orderIndex, displayIndex) {
 async function admin_logout() {
     try {
         await signOut(auth);
-        localStorage.removeItem("currentUser");
         window.location.href = "../../../../../index.html";
     } catch (error) {
         console.error("Error signing out:", error);
-        localStorage.removeItem("currentUser");
+        alert("Logout failed. Redirecting anyway...");
         window.location.href = "../../../../../index.html";
     }
 }

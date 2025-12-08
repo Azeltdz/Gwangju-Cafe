@@ -34,7 +34,6 @@ async function loadAndRenderInventory() {
         const inventorySnapshot = await getDocs(
             query(collection(db, INVENTORY_COLLECTION), orderBy('id'))
         );
-        
         const inventory = [];
         inventorySnapshot.forEach((doc) => {
             inventory.push({
@@ -71,7 +70,6 @@ function renderInventoryTable(inventory) {
             </thead>
             <tbody>
     `;
-
     if (inventory.length === 0) {
         html += `
             <tr>
@@ -82,7 +80,6 @@ function renderInventoryTable(inventory) {
     } else {
         inventory.forEach((item, index) => {
             const daysLeft = daysUntilExpired(item.expirationDate);
-
             let rowColor = "";
             if (daysLeft <= 0) rowColor = `style="background:#ffb3b3"`;  
             else if (daysLeft <= 7) rowColor = `style="background:#ffe5b3"`; 
@@ -90,19 +87,14 @@ function renderInventoryTable(inventory) {
             html += `
                 <tr ${rowColor} data-doc-id="${item.docId}">
                     <td>${item.id}</td>
-
                     <td><input type="text" value="${item.name}" data-field="name" class="inventory_input"></td>
                     <td><input type="text" value="${item.category}" data-field="category" class="inventory_input"></td>
                     <td><input type="text" value="${item.size}" data-field="size" class="inventory_input"></td>
-
                     <td><input type="number" value="${item.price}" data-field="price" class="inventory_input"></td>
                     <td><input type="number" value="${item.stock}" data-field="stock" class="inventory_input"></td>
-
                     <td><input type="date" value="${item.addedDate}" data-field="addedDate" class="inventory_input"></td>
                     <td><input type="date" value="${item.expirationDate}" data-field="expirationDate" class="inventory_input"></td>
-
                     <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
-
                     <td>
                         <button class="update_button" onclick="updateItem(${index})">Update</button>
                         <button class="delete_button" onclick="deleteInventoryItem(${index})">Delete</button>
@@ -111,12 +103,10 @@ function renderInventoryTable(inventory) {
             `;
         });
     }
-
     html += `
             </tbody>
         </table>
     `;
-
     container.innerHTML = html;
 }
 
@@ -125,7 +115,6 @@ async function updateItem(index) {
         const row = document.querySelectorAll("tbody tr")[index];
         const docId = row.dataset.docId;
         const inputs = row.querySelectorAll(".inventory_input");
-
         const updates = {};
         inputs.forEach(input => {
             const field = input.dataset.field;
@@ -134,13 +123,10 @@ async function updateItem(index) {
             if (field === "price" || field === "stock") {
                 value = Number(value);
             }
-
             updates[field] = value;
         });
-
         const docRef = doc(db, INVENTORY_COLLECTION, docId);
         await updateDoc(docRef, updates);
-
         await loadAndRenderInventory();
         alert("Item updated successfully!");
     } catch (error) {
@@ -157,7 +143,6 @@ async function addInventoryItem() {
     const size = prompt("Size:") || "Default";
     const price = Number(prompt("Price:") || 0);
     const stock = Number(prompt("Stock quantity:") || 0);
-
     const addedDate = new Date().toISOString().split("T")[0];
     let expirationDate = prompt("Expiration date (YYYY-MM-DD):") || addedDate;
 
@@ -172,7 +157,6 @@ async function addInventoryItem() {
             addedDate,
             expirationDate
         });
-
         await loadAndRenderInventory();
         alert("Item added successfully!");
     } catch (error) {
@@ -183,13 +167,10 @@ async function addInventoryItem() {
 
 async function deleteInventoryItem(index) {
     if (!confirm("Remove this item from inventory?")) return;
-
     try {
         const row = document.querySelectorAll("tbody tr")[index];
         const docId = row.dataset.docId;
-
         await deleteDoc(doc(db, INVENTORY_COLLECTION, docId));
-
         await loadAndRenderInventory();
         alert("Item deleted successfully!");
     } catch (error) {
@@ -203,7 +184,6 @@ async function generateInventory() {
 
     let inventory = [];
     let id = 1;
-
     const randomStock = () => Math.floor(Math.random() * 61);
     const today = new Date().toISOString().split("T")[0];
 
@@ -219,19 +199,16 @@ async function generateInventory() {
 
         return exp.toISOString().split("T")[0];
     }
-
     const coffee = [
         "Iced Americano", "Iced Latte", "Iced Mochaccino", "Coffee Jelly",
         "Iced Salted Caramel", "Iced Matcha Espresso", "Iced Almond Macchiatto",
         "Iced Caramel Macchiatto", "Iced Hazelnut Macchiatto", "Iced Spanish Latte"
     ];
-
     const sizes3 = [
         { size: "Tall", price: 49 },
         { size: "Grande", price: 59 },
         { size: "Venti", price: 79 }
     ];
-
     coffee.forEach(name =>
         sizes3.forEach(s =>
             inventory.push({
@@ -246,17 +223,14 @@ async function generateInventory() {
             })
         )
     );
-
     const espressoNonCoffee = [
         "Americano", "Mochaccino", "Salted Caramel",
         "Matcha Espresso", "Hazelnut Macchiatto", "Caramel Macchiatto"
     ];
-
     const sizes2 = [
         { size: "Tall", price: 49 },
         { size: "Grande", price: 59 }
     ];
-
     espressoNonCoffee.forEach(name =>
         sizes2.forEach(s =>
             inventory.push({
@@ -271,13 +245,11 @@ async function generateInventory() {
             })
         )
     );
-
     const latteSeries = [
         "Blueberry Latte", "Strawberry Latte", "Matcha Latte",
         "Green Apple Latte", "Mango Latte", "Lychee Latte",
         "Choco Lava Latte", "Honey Peach Latte"
     ];
-
     latteSeries.forEach(name =>
         sizes3.forEach(s =>
             inventory.push({
@@ -292,12 +264,10 @@ async function generateInventory() {
             })
         )
     );
-
     const fruitTea = [
         "Lychee Fruit Tea","Blueberry Fruit Tea","Strawberry Fruit Tea",
         "Honey Peach Fruit Tea","Mango Fruit Tea","Green Apple Fruit Tea"
     ];
-
     fruitTea.forEach(name =>
         sizes3.forEach(s =>
             inventory.push({
@@ -312,12 +282,10 @@ async function generateInventory() {
             })
         )
     );
-
     const milkSoda = [
         "Strawberry Milk Soda","Blueberry Milk Soda","Green Apple Soda",
         "Strawberry Soda","Blueberry Soda","Honey Peach Soda"
     ];
-
     milkSoda.forEach(name =>
         sizes3.forEach(s =>
             inventory.push({
@@ -332,12 +300,10 @@ async function generateInventory() {
             })
         )
     );
-
     const premiumLatte = [
         "Strawberry Oreo Latte","Oreo Latte","Berry Matcha",
         "Chocolate Strawberry","Strawberry Macchiato","Red Velvet Macchiato"
     ];
-
     premiumLatte.forEach(name =>
         sizes3.forEach(s =>
             inventory.push({
@@ -352,11 +318,9 @@ async function generateInventory() {
             })
         )
     );
-
     const biscoffSeries = [
         "Biscoff Latte","Biscoff Matcha Latte","Biscoff Oreo Latte","Biscoff Iced Coffee"
     ];
-
     const grandeOnly = [{ size: "Grande", price: 59 }];
 
     biscoffSeries.forEach(name =>
@@ -373,12 +337,10 @@ async function generateInventory() {
             })
         )
     );
-
     const pastries = [
         "Classic Cinnamon","Cream Cheese Glazed","Caramel Pecan",
         "Classic Chocolate Cake","Red Velvet Cake","Coffee Cake"
     ];
-
     const pastriesSize = [{ size: "Regular", price: 65 }];
 
     pastries.forEach(name =>
@@ -395,7 +357,6 @@ async function generateInventory() {
             })
         )
     );
-
     const takoyaki = ["Classic Takoyaki","Shrimp Takoyaki","Bacon Takoyaki"];
     const takoyakiReg = [{ size: "Regular", price: 120 }];
     const takoyakiSpicy = [{ size: "Spicy", price: 130 }];
@@ -414,7 +375,6 @@ async function generateInventory() {
             })
         )
     );
-
     takoyaki.forEach(name =>
         takoyakiSpicy.forEach(s =>
             inventory.push({
@@ -429,12 +389,10 @@ async function generateInventory() {
             })
         )
     );
-
     const chickenRamen = [
         { size: "Original", price: 190 },
         { size: "Spicy", price: 200 }
     ];
-
     chickenRamen.forEach(s =>
         inventory.push({
             id: id++,
@@ -447,12 +405,10 @@ async function generateInventory() {
             expirationDate: assignExpiration("Ramen")
         })
     );
-
     const beefRamen = [
         { size: "Original", price: 220 },
         { size: "Spicy", price: 230 }
     ];
-
     beefRamen.forEach(s =>
         inventory.push({
             id: id++,
@@ -465,7 +421,6 @@ async function generateInventory() {
             expirationDate: assignExpiration("Ramen")
         })
     );
-
     try {
         // Add all items to Firestore
         const promises = inventory.map(item => 
@@ -480,7 +435,6 @@ async function generateInventory() {
         alert("Failed to generate inventory. Please try again.");
     }
 }
-
 async function admin_logout() {
     try {
         await signOut(auth);

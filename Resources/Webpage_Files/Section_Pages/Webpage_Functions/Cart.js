@@ -26,7 +26,6 @@ onAuthStateChanged(auth, (user) => {
         displayCart();
     }
 });
-
 async function loadUserCart() {
     if (!currentUser) return;
 
@@ -43,7 +42,6 @@ async function loadUserCart() {
         console.error("Error loading user cart:", error);
     }
 }
-
 async function saveUserCart() {
     if (!currentUser) {
         alert("Please log in to manage cart.");
@@ -62,7 +60,6 @@ async function saveUserCart() {
         return false;
     }
 }
-
 function displayCart() {
     const cartItems = document.getElementById("cart_items");
     const totalBox = document.querySelector(".cart_total");
@@ -75,7 +72,6 @@ function displayCart() {
         console.error("Cart: Missing DOM elements.");
         return;
     }
-
     cartItems.innerHTML = "";
 
     if (cart.length === 0) {
@@ -84,7 +80,6 @@ function displayCart() {
         buttonsBox.style.display = "none";
         return;
     }
-
     totalBox.style.display = "block";
     buttonsBox.style.display = "flex";
 
@@ -93,7 +88,6 @@ function displayCart() {
     cart.forEach(item => {
         const subtotal = item.price * item.quantity;
         total += subtotal;
-
         cartItems.innerHTML += `
             <div class="cart_item">
                 <div class="cart_item_details">
@@ -104,13 +98,11 @@ function displayCart() {
                         Subtotal: P ${subtotal.toFixed(2)}
                     </p>
                 </div>
-
                 <button class="remove_button" onclick="removeItem(${item.id})">X</button>
             </div>
             <hr>
         `;
     });
-
     totalEl.textContent = total.toFixed(2);
     shippingEl.textContent = shipping_fee.toFixed(2);
     finalTotalEl.textContent = (total + shipping_fee).toFixed(2);
@@ -123,7 +115,6 @@ async function removeItem(id) {
     try {
         // Restore stock to inventory
         const [invName, invSize] = removedItem.name.split(" ∙ ");
-        
         const inventorySnapshot = await getDocs(collection(db, INVENTORY_COLLECTION));
         
         let invDocId = null;
@@ -136,19 +127,16 @@ async function removeItem(id) {
                 currentStock = item.stock;
             }
         });
-
         if (invDocId) {
             const invDocRef = doc(db, INVENTORY_COLLECTION, invDocId);
             await updateDoc(invDocRef, {
                 stock: currentStock + removedItem.quantity
             });
         }
-
         // Remove from cart
         cart = cart.filter(item => item.id !== id);
         await saveUserCart();
         displayCart();
-
     } catch (error) {
         console.error("Error removing item:", error);
         alert("Failed to remove item. Please try again.");
@@ -157,7 +145,6 @@ async function removeItem(id) {
 
 async function clearCart() {
     if (!confirm("Are you sure you want to clear your cart?")) return;
-
     try {
         // Restore all stock to inventory
         const inventorySnapshot = await getDocs(collection(db, INVENTORY_COLLECTION));
@@ -170,7 +157,6 @@ async function clearCart() {
                 stock: item.stock
             };
         });
-
         // Update stock for each cart item
         for (const item of cart) {
             const [invName, invSize] = item.name.split(" ∙ ");
@@ -183,23 +169,19 @@ async function clearCart() {
                 });
             }
         }
-
         // Clear cart
         cart = [];
         await saveUserCart();
         displayCart();
-
     } catch (error) {
         console.error("Error clearing cart:", error);
         alert("Failed to clear cart. Please try again.");
     }
 }
-
 function checkout() {
     if (cart.length === 0) return;
     window.location.href = "CheckOut.html";
 }
-
 const backBtn = document.querySelector(".back_link");
 
 if (backBtn) {

@@ -1,8 +1,7 @@
 // LogIn.js - Firebase Authentication with Firestore
-import { auth, db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-
 // Auto-create admin account if it doesn't exist
 (async function createAdminAccount() {
     try {
@@ -21,7 +20,6 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from "https://
                 // Create admin in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
                 const adminUser = userCredential.user;
-                
                 // Create admin document in Firestore
                 await setDoc(doc(db, "users", adminUser.uid), {
                     email: adminEmail,
@@ -38,13 +36,11 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs } from "https://
                     cart: [],
                     createdAt: new Date().toISOString()
                 });
-                
                 // Create username mapping
                 await setDoc(doc(db, "usernames", adminUsername), {
                     username: adminUsername,
                     uid: adminUser.uid
                 });
-                
                 console.log("Admin account created successfully");
             } catch (authError) {
                 // If admin email already exists in Auth, just log it
@@ -73,7 +69,6 @@ if (togglePassword && passwordInput) {
     togglePassword.addEventListener("click", function() {
         const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
         passwordInput.setAttribute("type", type);
-        
         // Toggle SVG visibility
         if (type === "password") {
             eyeOpen.style.display = "block";
@@ -100,10 +95,8 @@ if (loginForm) {
         if (errorMessage) {
             errorMessage.textContent = "";
         }
-
         try {
             let email = usernameOrEmail;
-            
             // Check if input is a username (not an email)
             if (!usernameOrEmail.includes("@")) {
                 // Look up email by username in Firestore
@@ -115,25 +108,20 @@ if (loginForm) {
                     showError("Username not found!");
                     return;
                 }
-                
                 // Get the user ID from username
                 const usernameDoc = querySnapshot.docs[0].data();
                 const userId = usernameDoc.uid;
-                
                 // Get user data to retrieve email
                 const userDoc = await getDoc(doc(db, "users", userId));
                 if (!userDoc.exists()) {
                     showError("User data not found!");
                     return;
                 }
-                
                 email = userDoc.data().email;
             }
-
             // Sign in with Firebase Authentication
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-
             // Get user data from Firestore
             const userDoc = await getDoc(doc(db, "users", user.uid));
             
@@ -141,20 +129,16 @@ if (loginForm) {
                 showError("User data not found!");
                 return;
             }
-
             const userData = userDoc.data();
             console.log("Logged in user data:", userData);
-
             // Redirect based on user role
             if (userData.role === "admin") {
                 window.location.href = "Resources/Webpage_Files/Section_Pages/Webpage_Sections/Admin_Sections/AdminProfile.html";
             } else {
                 window.location.href = "Resources/Webpage_Files/Section_Pages/Webpage_Sections/Home.html";
             }
-
         } catch (error) {
             console.error("Error during login:", error);
-            
             // Handle specific Firebase errors
             switch (error.code) {
                 case 'auth/user-not-found':

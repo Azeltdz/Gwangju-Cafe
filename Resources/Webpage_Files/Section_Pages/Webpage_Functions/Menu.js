@@ -80,7 +80,6 @@ async function menuGetInventory() {
                 ...doc.data()
             });
         });
-        
         return inventory;
     } catch (error) {
         console.error("Error loading inventory:", error);
@@ -106,7 +105,6 @@ async function menuFindInventoryItem(flavor, size) {
                 };
             }
         });
-        
         return foundItem;
     } catch (error) {
         console.error("Error finding inventory item:", error);
@@ -259,7 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateProductDisplay();
     }
 });
-
 // Export functions if needed
 window.menuGetInventory = menuGetInventory;
 window.menuFindInventoryItem = menuFindInventoryItem;

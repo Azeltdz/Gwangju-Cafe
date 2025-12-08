@@ -1,5 +1,5 @@
 // Profile.js - Firebase Authentication & Firestore
-import { auth, db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
@@ -69,7 +69,6 @@ function renderProfile(user) {
         "Brgy. " + a.barangay,
         "San Luis, Batangas, Philippines"
     ].filter(Boolean).join(", ");
-
     // Password is securely stored in Firebase Auth, we don't show it
     const passwordDisplay = "••••••••";
 
@@ -77,7 +76,6 @@ function renderProfile(user) {
         <div class="profile_box">
             <h2>Profile Information</h2>
             <hr>
-
             <h4 class="profile_section_title">Full Name: ${fullName || "No name saved."}</h4>
             <p><strong>Username:</strong> ${user.username || "Not set"}</p>
             <p><strong>Email:</strong> ${user.email || "Not set"}</p>
@@ -86,7 +84,6 @@ function renderProfile(user) {
         </div>
     `;
 }
-
 // Logout function (called from HTML button)
 window.logout = async function() {
     try {
@@ -98,7 +95,6 @@ window.logout = async function() {
         alert("Error logging out: " + error.message);
     }
 };
-
 // Navigation logout function (if needed)
 window.nav_logout = async function() {
     try {

@@ -1,13 +1,11 @@
-// AdminProfile.js - Firebase Authentication & Firestore
-import { auth, db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-// Initialize admin profile on page load
 document.addEventListener("DOMContentLoaded", () => {
     initAdminProfile();
 });
-
+// Admin Function
 async function initAdminProfile() {
     console.log("initAdminProfile called");
 
@@ -50,7 +48,7 @@ async function initAdminProfile() {
         }
     });
 }
-
+// Admin Profile DIsplay
 function renderAdminProfile(adminUser) {
     const container = document.getElementById("admin_profile_container");
     

@@ -25,7 +25,6 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "../../../../index.html";
     }
 });
-
 async function loadCheckoutData() {
     if (!currentUser) return;
 
@@ -52,7 +51,6 @@ async function loadCheckoutData() {
         alert("Failed to load checkout data. Please try again.");
     }
 }
-
 function displayCheckout() {
     const orderItemsEl = document.getElementById("orderItems");
     const itemsTotalEl = document.getElementById("itemsTotal");
@@ -70,7 +68,6 @@ function displayCheckout() {
         finalTotalEl.textContent = "0.00";
         return;
     }
-
     // Calculate total items
     const totalItems = userCart.reduce((sum, item) => {
         return sum + (Number(item.quantity) || 1);
@@ -112,7 +109,6 @@ function displayCheckout() {
     window.displayCart = displayCart;
     window.itemsTotal = itemsTotal;
 }
-
 async function handlePlaceOrder(e) {
     e.preventDefault();
 
@@ -161,7 +157,6 @@ async function handlePlaceOrder(e) {
         alert("Failed to place order. Please try again.");
     }
 }
-
 function formatOrderDate(date) {
     const d = new Date(date);
 
@@ -177,7 +172,6 @@ function formatOrderDate(date) {
 
     return `${month}∙${day}∙${year}, ${hours}:${minutes}:${seconds} ${ampm}`;
 }
-
 function showReceiptPopup(order) {
     const bg = document.createElement("div");
     bg.className = "receipt_popup_bg";
@@ -230,7 +224,6 @@ function showReceiptPopup(order) {
         </div>
         <button id="closeReceipt">OK</button>
     `;
-
     bg.appendChild(popup);
     document.body.appendChild(bg);
     document.getElementById("closeReceipt").onclick = () => {

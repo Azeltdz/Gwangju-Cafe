@@ -116,19 +116,27 @@ async function markReceived(index) {
             return;
         }
         const userData = userDoc.data();
-        const order = userData.orders[index];
-
-        if (order.status !== "Completed") {
-            alert("This order has not been marked completed by admin yet.");
+        const orders = userData.orders || [];
+        // Validate index
+        if (index < 0 || index >= orders.length) {
+            alert("Invalid order.");
             return;
         }
+        const order = orders[index];
+        if (order.status !== "Completed") {
+            alert("Order must be completed before marking as received.");
+            return;
+        }
+        // Only update if order is completed
         order.status = "Received";
         order.rating = order.rating || 0;
-
+        order.receivedAt = new Date().toISOString();
+        // Update Firestore
         await updateDoc(userDocRef, {
-            orders: userData.orders
+            orders: orders
         });
         await initHistory();
+        alert("Order marked as received!");
 
     } catch (error) {
         console.error("Error marking order as received:", error);

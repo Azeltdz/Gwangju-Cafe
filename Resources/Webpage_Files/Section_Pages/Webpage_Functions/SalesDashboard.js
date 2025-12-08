@@ -1,5 +1,5 @@
 
-import { db } from '../../../firebase-config.js';
+import { db } from './firebase-config.js';
 import { 
     collection, 
     getDocs, 
@@ -158,7 +158,6 @@ function drawDailySalesChart(dailySales) {
         }
     });
 }
-
 async function admin_logout() {
     try {
         await signOut(auth);
