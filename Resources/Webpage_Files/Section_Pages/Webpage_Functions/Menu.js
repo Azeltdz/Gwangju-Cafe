@@ -159,6 +159,61 @@ async function updateProductDisplay() {
     }
 }
 
+// Setup quantity input validation (call this once on page load)
+function setupQuantityInput() {
+    const qtyInput = document.querySelector(".quantity input") || document.querySelector(".quantity_input");
+    
+    if (qtyInput && !qtyInput.dataset.listenerAdded) {
+        qtyInput.dataset.listenerAdded = "true";
+        // Prevent invalid input in real-time
+        qtyInput.addEventListener("input", (e) => {
+            let value = parseInt(e.target.value);
+            // If empty, invalid, or 0, set to 1
+            if (e.target.value === "" || isNaN(value) || value < 1) {
+                e.target.value = 1;
+            }
+            // If greater than 15, cap it at 15
+            else if (value > 15) {
+                e.target.value = 15;
+            }
+        });
+        // Prevent backspace/delete from leaving empty or 0
+        qtyInput.addEventListener("keydown", (e) => {
+            // Allow navigation keys
+            if (["ArrowLeft", "ArrowRight", "Tab", "Delete"].includes(e.key)) {
+                return;
+            }
+            // If backspace would leave empty or 0, prevent it
+            if (e.key === "Backspace") {
+                const currentValue = e.target.value;
+                const cursorPosition = e.target.selectionStart;
+                // Simulate what value would be after backspace
+                const newValue = currentValue.slice(0, cursorPosition - 1) + currentValue.slice(cursorPosition);
+                const numValue = parseInt(newValue);
+                
+                if (newValue === "" || isNaN(numValue) || numValue < 1) {
+                    e.preventDefault();
+                    e.target.value = 1;
+                }
+            }
+        });
+        // Ensure value is valid on blur (when user clicks away)
+        qtyInput.addEventListener("blur", (e) => {
+            let value = parseInt(e.target.value);
+            
+            if (e.target.value === "" || isNaN(value) || value < 1) {
+                e.target.value = 1;
+            } else if (value > 15) {
+                e.target.value = 15;
+            }
+        });
+        // Set initial value to 1 if empty
+        if (!qtyInput.value) {
+            qtyInput.value = 1;
+        }
+    }
+}
+
 async function handleAddToCart() {
     // Check if user is logged in
     if (!currentUser) {
@@ -169,18 +224,20 @@ async function handleAddToCart() {
     const sizeOption = document.querySelector(".size_select")?.selectedOptions[0];
     const size = sizeOption ? sizeOption.value : "";
     const qtyInput = document.querySelector(".quantity input") || document.querySelector(".quantity_input");
-    const quantity = parseInt(qtyInput?.value || 1);
-
+    let quantity = parseInt(qtyInput?.value || 1);
+    // Validate and constrain quantity
+    if (isNaN(quantity) || quantity < 1) {
+        quantity = 1;
+        qtyInput.value = 1;
+    } else if (quantity > 15) {
+        quantity = 15;
+        qtyInput.value = 15;
+    }
     if (!flavor || !size) {
         alert("Please select a flavor and size.");
         return;
     }
-    if (quantity < 1 || quantity > 15) {
-        alert("Please enter a valid quantity (1-15).");
-        return;
-    }
     const invItem = await menuFindInventoryItem(flavor, size);
-
     if (!invItem) {
         alert(`Item not found in inventory: ${flavor} (${size})`);
         return;
@@ -204,6 +261,7 @@ async function handleAddToCart() {
         addedByEmail: currentUser.email,
         addedAt: new Date().toISOString()
     };
+    
     cart.push(item);
     // Save cart to Firestore
     const saved = await saveUserCart();
@@ -251,14 +309,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sizeSelect) {
         sizeSelect.addEventListener("change", updateProductDisplay);
     }
+    // Setup quantity input validation
+    setupQuantityInput();
     // Initial stock display will be triggered by onAuthStateChanged
     // Or immediately if user is already loaded
     if (currentUser) {
         updateProductDisplay();
     }
 });
-
-
 
 // Export functions if needed
 window.menuGetInventory = menuGetInventory;
