@@ -199,16 +199,6 @@ if (backBtn) {
     });
 }
 
-window.logout = async function() {
-    try {
-        await signOut(auth);
-        window.location.href = "../../../../index.html";
-    } catch (error) {
-        console.error("Error signing out:", error);
-        alert("Error logging out: " + error.message);
-    }
-};
-
 // Make functions globally accessible
 window.removeItem = removeItem;
 window.clearCart = clearCart;
