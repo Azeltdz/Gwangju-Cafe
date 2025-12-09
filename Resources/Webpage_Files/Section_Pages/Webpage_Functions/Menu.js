@@ -168,8 +168,12 @@ function setupQuantityInput() {
         // Prevent invalid input in real-time
         qtyInput.addEventListener("input", (e) => {
             let value = parseInt(e.target.value);
-            // If empty, invalid, or 0, set to 1
-            if (e.target.value === "" || isNaN(value) || value < 1) {
+            // If completely empty or 0, allow it temporarily
+            if (e.target.value === "" || value === 0) {
+                return;
+            }
+            // If invalid or negative, set to 1
+            if (isNaN(value) || value < 0) {
                 e.target.value = 1;
             }
             // If greater than 15, cap it at 15
@@ -177,30 +181,18 @@ function setupQuantityInput() {
                 e.target.value = 15;
             }
         });
-        // Prevent backspace/delete from leaving empty or 0
+        // Allow all keyboard navigation
         qtyInput.addEventListener("keydown", (e) => {
-            // Allow navigation keys
-            if (["ArrowLeft", "ArrowRight", "Tab", "Delete"].includes(e.key)) {
-                return;
-            }
-            // If backspace would leave empty or 0, prevent it
-            if (e.key === "Backspace") {
-                const currentValue = e.target.value;
-                const cursorPosition = e.target.selectionStart;
-                // Simulate what value would be after backspace
-                const newValue = currentValue.slice(0, cursorPosition - 1) + currentValue.slice(cursorPosition);
-                const numValue = parseInt(newValue);
-                
-                if (newValue === "" || isNaN(numValue) || numValue < 1) {
-                    e.preventDefault();
-                    e.target.value = 1;
-                }
+            // Allow navigation keys, backspace, delete
+            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                e.preventDefault();
             }
         });
         // Ensure value is valid on blur (when user clicks away)
         qtyInput.addEventListener("blur", (e) => {
             let value = parseInt(e.target.value);
             
+            // Fix invalid values when user clicks away
             if (e.target.value === "" || isNaN(value) || value < 1) {
                 e.target.value = 1;
             } else if (value > 15) {
@@ -229,9 +221,11 @@ async function handleAddToCart() {
     if (isNaN(quantity) || quantity < 1) {
         quantity = 1;
         qtyInput.value = 1;
+        alert("Quantity must be between 1-15.");
     } else if (quantity > 15) {
         quantity = 15;
         qtyInput.value = 15;
+        alert("Maximum quantity is 15.");
     }
     if (!flavor || !size) {
         alert("Please select a flavor and size.");
@@ -243,7 +237,7 @@ async function handleAddToCart() {
         return;
     }
     if (invItem.stock < quantity) {
-        alert(`${invItem.name} (${invItem.size}) has only ${invItem.stock} left.`);
+        alert(`${invItem.name} (${invItem.size}) has ${invItem.stock} stock left.`);
         return;
     }
     const price = invItem.price;
