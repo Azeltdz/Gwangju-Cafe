@@ -403,7 +403,7 @@ function showUpdateItemPopup(currentData) {
                 </select>
 
                 <label>Price:</label>
-                <input type="number" id="update_price" class="styled_input" readonly>
+                <input type="number" id="update_price" class="styled_input">
 
                 <label>Stock Quantity:</label>
                 <input type="number" id="update_stock" class="styled_input quantity_input" min="1" max="15" value="${currentData.stock}">
@@ -733,10 +733,10 @@ function showAddItemPopup() {
                 </select>
 
                 <label>Price:</label>
-                <input type="number" id="popup_price" class="styled_input" readonly>
+                <input type="number" id="popup_price" class="styled_input">
 
                 <label>Stock Quantity:</label>
-                <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="15" value="1" readonly>
+                <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="15" value="1">
 
                 <label>Expiration Date:</label>
                 <input type="date" id="popup_expiration" class="styled_input">
