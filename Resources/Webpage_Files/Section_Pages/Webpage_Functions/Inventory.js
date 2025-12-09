@@ -177,10 +177,19 @@ async function loadAndRenderInventory() {
     }
 }
 
-function renderInventoryTable(inventory) {
-    const container = document.getElementById("inventory_table");
+let allInventory = [];
+let displayedCount = 0;
+const ITEMS_PER_LOAD = 10;
+const ITEMS_AFTER_FIRST = 20;
 
-    let html = `
+function renderInventoryTable(inventory) {
+    allInventory = inventory;
+    displayedCount = 0;
+    
+    const container = document.getElementById("inventory_table");
+    
+    // Create initial table structure
+    container.innerHTML = `
         <table class="admin_inventory_table">
             <thead>
                 <tr>
@@ -192,44 +201,140 @@ function renderInventoryTable(inventory) {
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
-    `;
-    if (inventory.length === 0) {
-        html += `
-            <tr>
-                <td colspan="10" style="text-align:center; padding:15px; color:gray;">
-                    No items in inventory.
-                </td>
-            </tr>`;
-    } else {
-        inventory.forEach((item, index) => {
-            const daysLeft = daysUntilExpired(item.expirationDate);
-            let rowColor = "";
-            if (daysLeft <= 0) rowColor = `style="background:#ffb3b3"`;  
-            else if (daysLeft <= 7) rowColor = `style="background:#ffe5b3"`; 
-
-            html += `
-                <tr ${rowColor} data-doc-id="${item.docId}">
-                    <td>${item.id}</td>
-                    <td>${item.category}</td>
-                    <td>${item.name}</td>
-                    <td>${item.size}</td>
-                    <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
-                    <td>
-                        <button class="update_button" data-doc-id="${item.docId}">Update</button>
-                    </td>
-                </tr>
-            `;
-        });
-    }
-    html += `
+            <tbody id="inventory_tbody">
             </tbody>
         </table>
+        <div id="load_more_container" style="text-align: center; margin-top: 20px;"></div>
     `;
-    container.innerHTML = html;
     
-    // Add event listeners to all update buttons
-    document.querySelectorAll('.update_button').forEach(button => {
+    if (inventory.length === 0) {
+        document.getElementById("inventory_tbody").innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align:center; padding:15px; color:gray;">
+                    No items in inventory.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Load first batch
+    loadMoreItems();
+}
+
+function loadMoreItems() {
+    const tbody = document.getElementById("inventory_tbody");
+    const loadMoreContainer = document.getElementById("load_more_container");
+    
+    // Determine how many items to load
+    const itemsToLoad = displayedCount === 0 ? ITEMS_PER_LOAD : ITEMS_AFTER_FIRST;
+    const startIndex = displayedCount;
+    const endIndex = Math.min(startIndex + itemsToLoad, allInventory.length);
+    
+    // Add new rows
+    for (let i = startIndex; i < endIndex; i++) {
+        const item = allInventory[i];
+        const daysLeft = daysUntilExpired(item.expirationDate);
+        let rowColor = "";
+        if (daysLeft <= 0) rowColor = `style="background:#ffb3b3"`;  
+        else if (daysLeft <= 7) rowColor = `style="background:#ffe5b3"`; 
+
+        const row = document.createElement('tr');
+        row.setAttribute('data-doc-id', item.docId);
+        if (rowColor) row.setAttribute('style', rowColor.replace('style="', '').replace('"', ''));
+        
+        row.innerHTML = `
+            <td>${item.id}</td>
+            <td>${item.category}</td>
+            <td>${item.name}</td>
+            <td>${item.size}</td>
+            <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
+            <td>
+                <button class="update_button" data-doc-id="${item.docId}">Update</button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    }
+    
+    displayedCount = endIndex;
+    
+    // Update or remove "Load More" button
+    if (displayedCount < allInventory.length) {
+        const remaining = allInventory.length - displayedCount;
+        const nextLoad = Math.min(ITEMS_AFTER_FIRST, remaining);
+        
+        loadMoreContainer.innerHTML = `
+            <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                <button class="load_more_button" onclick="loadMoreItems()">
+                    Load More (${nextLoad} of ${remaining} remaining)
+                </button>
+                <button class="load_all_button" onclick="loadAllItems()">
+                    Load All (${remaining} remaining)
+                </button>
+            </div>
+        `;
+    } else {
+        loadMoreContainer.innerHTML = `
+            <p style="color: #666; font-style: italic;">All ${allInventory.length} items loaded</p>
+        `;
+    }
+    
+    // Add event listeners to newly added update buttons
+    const newButtons = tbody.querySelectorAll('.update_button:not([data-listener])');
+    newButtons.forEach(button => {
+        button.setAttribute('data-listener', 'true');
+        button.addEventListener('click', function() {
+            const docId = this.getAttribute('data-doc-id');
+            updateItem(docId);
+        });
+    });
+}
+
+function loadAllItems() {
+    const tbody = document.getElementById("inventory_tbody");
+    const loadMoreContainer = document.getElementById("load_more_container");
+    
+    const startIndex = displayedCount;
+    const endIndex = allInventory.length;
+    
+    // Add all remaining rows
+    for (let i = startIndex; i < endIndex; i++) {
+        const item = allInventory[i];
+        const daysLeft = daysUntilExpired(item.expirationDate);
+        let rowColor = "";
+        if (daysLeft <= 0) rowColor = `style="background:#ffb3b3"`;  
+        else if (daysLeft <= 7) rowColor = `style="background:#ffe5b3"`; 
+
+        const row = document.createElement('tr');
+        row.setAttribute('data-doc-id', item.docId);
+        if (rowColor) row.setAttribute('style', rowColor.replace('style="', '').replace('"', ''));
+        
+        row.innerHTML = `
+            <td>${item.id}</td>
+            <td>${item.category}</td>
+            <td>${item.name}</td>
+            <td>${item.size}</td>
+            <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
+            <td>
+                <button class="update_button" data-doc-id="${item.docId}">Update</button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    }
+    
+    displayedCount = endIndex;
+    
+    // Show completion message
+    loadMoreContainer.innerHTML = `
+        <p style="color: #666; font-style: italic;">All ${allInventory.length} items loaded</p>
+    `;
+    
+    // Add event listeners to newly added update buttons
+    const newButtons = tbody.querySelectorAll('.update_button:not([data-listener])');
+    newButtons.forEach(button => {
+        button.setAttribute('data-listener', 'true');
         button.addEventListener('click', function() {
             const docId = this.getAttribute('data-doc-id');
             updateItem(docId);
@@ -1162,3 +1267,5 @@ window.confirmAddItem = confirmAddItem;
 window.closeAddItemPopup = closeAddItemPopup;
 window.admin_logout = admin_logout;
 window.toggleGenerateButton = toggleGenerateButton;
+window.loadMoreItems = loadMoreItems;
+window.loadAllItems = loadAllItems;

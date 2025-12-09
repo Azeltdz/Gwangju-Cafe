@@ -6,6 +6,11 @@ import {
 
 const USERS_COLLECTION = 'users';
 
+let allSales = [];
+let displayedCount = 0;
+const ITEMS_PER_LOAD = 10;
+const ITEMS_AFTER_FIRST = 20;
+
 async function initSales() {
     const container = document.getElementById("sales_table");
     if (!container) {
@@ -48,10 +53,15 @@ async function initSales() {
         container.innerHTML = "<p>Failed to load sales data. Please refresh the page.</p>";
     }
 }
-function renderSalesTable(sales) {
-    const container = document.getElementById("sales_table");
 
-    let html = `
+function renderSalesTable(sales) {
+    allSales = sales;
+    displayedCount = 0;
+    
+    const container = document.getElementById("sales_table");
+    
+    // Create initial table structure
+    container.innerHTML = `
         <table class="admin_inventory_table">
             <thead>
                 <tr>
@@ -64,62 +74,163 @@ function renderSalesTable(sales) {
                     <th>Subtotal</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="sales_tbody">
+            </tbody>
+        </table>
+        <div id="load_more_container" style="text-align: center; margin-top: 20px;"></div>
     `;
+    
     if (sales.length === 0) {
-        html += `
+        document.getElementById("sales_tbody").innerHTML = `
             <tr>
                 <td colspan="7" style="text-align:center; padding:15px; color:gray;">
                     No sales found.
                 </td>
             </tr>
         `;
-    } else {
-        sales.forEach(item => {
-            let productName = (item.name || "")
-                .replace("∙", "")
-                .replace("•", "")
-                .trim();
-            let size = item.size || "";
-
-            const sizePatterns = [
-                "Tall", "Grande", "Venti",
-                "Regular", "Spicy", "Original",
-                "Medium", "Large", "XL"
-            ];
-            sizePatterns.forEach(s => {
-                if (productName.toLowerCase().includes(s.toLowerCase())) {
-                    size = s;
-                    productName = productName
-                        .replace(`(${s})`, "")
-                        .replace(`-${s}`, "")
-                        .replace(`|${s}`, "")
-                        .replace(` ${s}`, "")
-                        .replace(s, "")
-                        .replace("∙", "")
-                        .replace("•", "")
-                        .trim();
-                }
-            });
-            html += `
-                <tr>
-                    <td>${item.orderId}</td>
-                    <td>${item.date}</td>
-                    <td>${productName}</td>
-                    <td>${size}</td>
-                    <td>${item.qty}</td>
-                    <td>P ${item.price.toFixed(2)}</td>
-                    <td>P ${item.subtotal.toFixed(2)}</td>
-                </tr>
-            `;
-        });
+        return;
     }
-    html += `
-            </tbody>
-        </table>
-    `;
-    container.innerHTML = html;
+    
+    // Load first batch
+    loadMoreSales();
 }
+
+function loadMoreSales() {
+    const tbody = document.getElementById("sales_tbody");
+    const loadMoreContainer = document.getElementById("load_more_container");
+    
+    // Determine how many items to load
+    const itemsToLoad = displayedCount === 0 ? ITEMS_PER_LOAD : ITEMS_AFTER_FIRST;
+    const startIndex = displayedCount;
+    const endIndex = Math.min(startIndex + itemsToLoad, allSales.length);
+    
+    // Add new rows
+    for (let i = startIndex; i < endIndex; i++) {
+        const item = allSales[i];
+        
+        let productName = (item.name || "")
+            .replace("∙", "")
+            .replace("•", "")
+            .trim();
+        let size = item.size || "";
+
+        const sizePatterns = [
+            "Tall", "Grande", "Venti",
+            "Regular", "Spicy", "Original",
+            "Medium", "Large", "XL"
+        ];
+        sizePatterns.forEach(s => {
+            if (productName.toLowerCase().includes(s.toLowerCase())) {
+                size = s;
+                productName = productName
+                    .replace(`(${s})`, "")
+                    .replace(`-${s}`, "")
+                    .replace(`|${s}`, "")
+                    .replace(` ${s}`, "")
+                    .replace(s, "")
+                    .replace("∙", "")
+                    .replace("•", "")
+                    .trim();
+            }
+        });
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.orderId}</td>
+            <td>${item.date}</td>
+            <td>${productName}</td>
+            <td>${size}</td>
+            <td>${item.qty}</td>
+            <td>P ${item.price.toFixed(2)}</td>
+            <td>P ${item.subtotal.toFixed(2)}</td>
+        `;
+        
+        tbody.appendChild(row);
+    }
+    
+    displayedCount = endIndex;
+    
+    // Update or remove "Load More" button
+    if (displayedCount < allSales.length) {
+        const remaining = allSales.length - displayedCount;
+        const nextLoad = Math.min(ITEMS_AFTER_FIRST, remaining);
+        
+        loadMoreContainer.innerHTML = `
+            <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                <button class="load_more_button" onclick="loadMoreSales()">
+                    Load More (${nextLoad} of ${remaining} remaining)
+                </button>
+                <button class="load_all_button" onclick="loadAllSales()">
+                    Load All (${remaining} remaining)
+                </button>
+            </div>
+        `;
+    } else {
+        loadMoreContainer.innerHTML = `
+            <p style="color: #666; font-style: italic;">All ${allSales.length} sales loaded</p>
+        `;
+    }
+}
+
+function loadAllSales() {
+    const tbody = document.getElementById("sales_tbody");
+    const loadMoreContainer = document.getElementById("load_more_container");
+    
+    const startIndex = displayedCount;
+    const endIndex = allSales.length;
+    
+    // Add all remaining rows
+    for (let i = startIndex; i < endIndex; i++) {
+        const item = allSales[i];
+        
+        let productName = (item.name || "")
+            .replace("∙", "")
+            .replace("•", "")
+            .trim();
+        let size = item.size || "";
+
+        const sizePatterns = [
+            "Tall", "Grande", "Venti",
+            "Regular", "Spicy", "Original",
+            "Medium", "Large", "XL"
+        ];
+        sizePatterns.forEach(s => {
+            if (productName.toLowerCase().includes(s.toLowerCase())) {
+                size = s;
+                productName = productName
+                    .replace(`(${s})`, "")
+                    .replace(`-${s}`, "")
+                    .replace(`|${s}`, "")
+                    .replace(` ${s}`, "")
+                    .replace(s, "")
+                    .replace("∙", "")
+                    .replace("•", "")
+                    .trim();
+            }
+        });
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${item.orderId}</td>
+            <td>${item.date}</td>
+            <td>${productName}</td>
+            <td>${size}</td>
+            <td>${item.qty}</td>
+            <td>P ${item.price.toFixed(2)}</td>
+            <td>P ${item.subtotal.toFixed(2)}</td>
+        `;
+        
+        tbody.appendChild(row);
+    }
+    
+    displayedCount = endIndex;
+    
+    // Show completion message
+    loadMoreContainer.innerHTML = `
+        <p style="color: #666; font-style: italic;">All ${allSales.length} sales loaded</p>
+    `;
+}
+
 async function admin_logout() {
     try {
         await signOut(auth);
@@ -131,8 +242,12 @@ async function admin_logout() {
         window.location.href = "../../../../../index.html";
     }
 }
+
 // Load sales when page loads
 document.addEventListener("DOMContentLoaded", initSales);
+
 // Make functions globally accessible
 window.initSales = initSales;
+window.loadMoreSales = loadMoreSales;
+window.loadAllSales = loadAllSales;
 window.admin_logout = admin_logout;
