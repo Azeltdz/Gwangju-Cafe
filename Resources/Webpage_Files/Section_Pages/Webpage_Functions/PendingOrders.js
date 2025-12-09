@@ -160,5 +160,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 });
+
+window.logout = async function() {
+    try {
+        await signOut(auth);
+        window.location.href = "../../../../index.html";
+    } catch (error) {
+        console.error("Error signing out:", error);
+        alert("Error logging out: " + error.message);
+    }
+};
+
 // Export functions if needed
 export { initPending, displayPending };

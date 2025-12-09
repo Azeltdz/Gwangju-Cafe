@@ -379,8 +379,11 @@ body {
 }
 
 .cart_container, 
-.checkout_container,
 .order_container,
+.checkout_container {
+    width: min(80%, 500px);
+}
+
 .completed_container,
 .customer_order_container {
     display: grid; 
@@ -388,6 +391,8 @@ body {
     gap: 25px;
     width: min(80%, 1000px);
 }
+
+
 
 .completed_container > div {
     border: 1px solid #333;
