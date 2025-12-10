@@ -412,7 +412,7 @@ function showUpdateItemPopup(currentData) {
                 <input type="date" id="update_addedDate" class="styled_input" value="${currentData.addedDate}" readonly>
 
                 <label>Expiration Date:</label>
-                <input type="date" id="update_expiration" class="styled_input" value="${currentData.expirationDate}">
+                <input type="date" id="update_expiration" class="styled_input" value="${currentData.expirationDate}" min="${minDateString}">
 
                 <div class="popup_buttons">
                     <button class="btn_confirm" id="btn_save_changes">Save Changes</button>
@@ -423,12 +423,18 @@ function showUpdateItemPopup(currentData) {
         </div>
     `;
     document.body.appendChild(popup);
+    // Setup input validation
+    const stockInput = document.getElementById('update_stock');
+    const priceInput = document.getElementById('update_price');
+    setupInventoryQuantityInput(stockInput);
+    setupInventoryPriceInput(priceInput);
     // Close popup when clicking outside
     popup.addEventListener('click', function(e) {
         if (e.target === popup) {
             closeUpdateItemPopup();
         }
     });
+    
     // Add button event listeners with proper closure
     document.getElementById('btn_save_changes').addEventListener('click', () => {
         confirmUpdateItem(currentData.docId);
@@ -443,7 +449,7 @@ function showUpdateItemPopup(currentData) {
     document.getElementById('update_subcategory').addEventListener('change', handleUpdateSubcategoryChange);
     document.getElementById('update_name').addEventListener('change', handleUpdateNameChange);
     document.getElementById('update_size').addEventListener('change', handleUpdateSizeChange);
-// Update expiration min date when added date changes
+    // Update expiration min date when added date changes
     const addedDateInput = document.getElementById('update_addedDate');
     const expirationInput = document.getElementById('update_expiration');
     
@@ -453,7 +459,6 @@ function showUpdateItemPopup(currentData) {
         minDate.setDate(addedDate.getDate() + 1);
         const minDateString = minDate.toISOString().split('T')[0];
         expirationInput.setAttribute('min', minDateString);
-        
         // If current expiration is before the new minimum, reset it
         if (expirationInput.value && expirationInput.value <= e.target.value) {
             expirationInput.value = minDateString;
@@ -473,6 +478,7 @@ function showUpdateItemPopup(currentData) {
             e.target.value = minDate.toISOString().split('T')[0];
         }
     }
+    
     // Initialize dropdowns with current data
     initializeUpdatePopup(currentData);
 }
@@ -694,6 +700,98 @@ function closeUpdateItemPopup() {
     if (popup) popup.remove();
 }
 
+// Setup quantity input validation for inventory (1-15, max 8 digits)
+function setupInventoryQuantityInput(inputElement) {
+    if (inputElement && !inputElement.dataset.listenerAdded) {
+        inputElement.dataset.listenerAdded = "true";
+        // Prevent invalid input in real-time
+        inputElement.addEventListener("input", (e) => {
+            // Remove leading zeros
+            if (e.target.value.startsWith('0') && e.target.value.length > 1) {
+                e.target.value = e.target.value.replace(/^0+/, '');
+            }
+            // Limit to 8 characters
+            if (e.target.value.length > 8) {
+                e.target.value = e.target.value.slice(0, 8);
+            }
+            let value = parseInt(e.target.value);
+            // If completely empty or 0, allow it temporarily
+            if (e.target.value === "" || value === 0) {
+                return;
+            }
+            // If invalid or negative, set to 1
+            if (isNaN(value) || value < 0) {
+                e.target.value = 1;
+            }
+        });
+        // Prevent invalid characters
+        inputElement.addEventListener("keydown", (e) => {
+            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        // Ensure value is valid on blur
+        inputElement.addEventListener("blur", (e) => {
+            let value = parseInt(e.target.value);
+            
+            if (e.target.value === "" || isNaN(value) || value < 1) {
+                e.target.value = 1;
+            } else if (value > 15) {
+                e.target.value = 15;
+            }
+        });
+        // Set initial value to 1 if empty
+        if (!inputElement.value) {
+            inputElement.value = 1;
+        }
+    }
+}
+
+// Setup price input validation (max 8 digits)
+function setupInventoryPriceInput(inputElement) {
+    if (inputElement && !inputElement.dataset.listenerAdded) {
+        inputElement.dataset.listenerAdded = "true";
+        // Prevent invalid input in real-time
+        inputElement.addEventListener("input", (e) => {
+            // Remove leading zeros except for decimal values like 0.50
+            if (e.target.value.startsWith('0') && e.target.value.length > 1 && !e.target.value.startsWith('0.')) {
+                e.target.value = e.target.value.replace(/^0+/, '');
+            }
+            // Limit to 8 characters
+            if (e.target.value.length > 8) {
+                e.target.value = e.target.value.slice(0, 8);
+            }
+            let value = parseFloat(e.target.value);
+            // If completely empty, allow it temporarily
+            if (e.target.value === "") {
+                return;
+            }
+            // If invalid or negative, set to 0
+            if (isNaN(value) || value < 0) {
+                e.target.value = 0;
+            }
+        });
+        // Prevent invalid characters
+        inputElement.addEventListener("keydown", (e) => {
+            if (["e", "E", "+", "-"].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        // Ensure value is valid on blur
+        inputElement.addEventListener("blur", (e) => {
+            let value = parseFloat(e.target.value);
+            
+            if (e.target.value === "" || isNaN(value) || value < 0) {
+                e.target.value = 0;
+            }
+            // Format to 2 decimal places if it's a decimal
+            if (e.target.value.includes('.')) {
+                e.target.value = parseFloat(e.target.value).toFixed(2);
+            }
+        });
+    }
+}
+
 async function addInventoryItem() {
     showAddItemPopup();
 }
@@ -738,6 +836,9 @@ function showAddItemPopup() {
                 <label>Stock Quantity:</label>
                 <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="15" value="1">
 
+                <label>Added Date:</label>
+                <input type="date" id="popup_addedDate" class="styled_input" readonly>
+
                 <label>Expiration Date:</label>
                 <input type="date" id="popup_expiration" class="styled_input">
 
@@ -749,17 +850,62 @@ function showAddItemPopup() {
         </div>
     `;
     document.body.appendChild(popup);
-
-    // Set default expiration date (30 days from now)
+    // Set default added date to today
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    document.getElementById('popup_addedDate').value = todayString;
+    // Set default expiration date (30 days from today)
     const defaultExp = new Date();
     defaultExp.setDate(defaultExp.getDate() + 30);
     document.getElementById('popup_expiration').value = defaultExp.toISOString().split('T')[0];
-
+    // Set minimum expiration date (1 day after added date)
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() + 1);
+    document.getElementById('popup_expiration').setAttribute('min', minDate.toISOString().split('T')[0]);
+    // Setup input validation
+    const stockInput = document.getElementById('popup_stock');
+    const priceInput = document.getElementById('popup_price');
+    setupInventoryQuantityInput(stockInput);
+    setupInventoryPriceInput(priceInput);
+    // Close popup when clicking outside
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            closeAddItemPopup();
+        }
+    });
     // Add event listeners
     document.getElementById('popup_category').addEventListener('change', handleCategoryChange);
     document.getElementById('popup_subcategory').addEventListener('change', handleSubcategoryChange);
     document.getElementById('popup_name').addEventListener('change', handleNameChange);
     document.getElementById('popup_size').addEventListener('change', handleSizeChange);
+    // Update expiration min date when added date changes
+    const addedDateInput = document.getElementById('popup_addedDate');
+    const expirationInput = document.getElementById('popup_expiration');
+    
+    addedDateInput.addEventListener('change', function(e) {
+        const addedDate = new Date(e.target.value);
+        const minDate = new Date(addedDate);
+        minDate.setDate(addedDate.getDate() + 1);
+        const minDateString = minDate.toISOString().split('T')[0];
+        expirationInput.setAttribute('min', minDateString);
+        // If current expiration is before the new minimum, reset it
+        if (expirationInput.value && expirationInput.value <= e.target.value) {
+            expirationInput.value = minDateString;
+        }
+    });
+    // Validate expiration date on change and on input
+    expirationInput.addEventListener('change', validateExpirationDate);
+    expirationInput.addEventListener('input', validateExpirationDate);
+    
+    function validateExpirationDate(e) {
+        const addedDate = document.getElementById('popup_addedDate').value;
+        if (addedDate && e.target.value && e.target.value <= addedDate) {
+            alert('Expiration date must be at least 1 day after the added date!');
+            const minDate = new Date(addedDate);
+            minDate.setDate(minDate.getDate() + 1);
+            e.target.value = minDate.toISOString().split('T')[0];
+        }
+    }
 }
 
 function handleCategoryChange(e) {
