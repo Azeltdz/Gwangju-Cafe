@@ -278,44 +278,84 @@ Gwangju-Cafe/
 ├── Readme.md                           # Project documentation
 └── Resources/
     ├── Webpage_Files/
+    │   ├── Product_Pages/              # Category and individual product pages
+    │   │   ├── Category_1/             # Coffee
+    │   │   │   ├── Category1_Coffee.html
+    │   │   │   ├── Category1.1_IcedCoffee.html
+    │   │   │   └── Category1.2_HotCoffee.html
+    │   │   ├── Category_2/             # Non-Coffee Drinks
+    │   │   │   ├── Category2_NonCoffee.html
+    │   │   │   ├── Category2.1_Latte.html
+    │   │   │   └── Category2.2_FruitTea.html
+    │   │   ├── Category_3/             # Secret Menu
+    │   │   │   ├── Category3_SecretMenu.html
+    │   │   │   ├── Category3.1_Soda.html
+    │   │   │   ├── Category3.2_FusionSeries.html
+    │   │   │   └── Category3.3_BiscoffSeries.html
+    │   │   ├── Category_4/             # Pastries
+    │   │   │   ├── Category4_Pastries.html
+    │   │   │   ├── Category4.1_CinnamonRoll.html
+    │   │   │   └── Category4.2_Cake.html
+    │   │   ├── Category_5/             # Takoyaki
+    │   │   │   ├── Category5_Takoyaki.html
+    │   │   │   ├── Category5.1_OriginalTakoyaki.html
+    │   │   │   └── Category5.2_SpicyTakoyaki.html
+    │   │   └── Category_6/             # Ramen
+    │   │       ├── Category6_Ramen.html
+    │   │       ├── Category6.1_ChickenRamen.html
+    │   │       └── Category6.2_BeefRamen.html
+    │   │
     │   ├── Section_Pages/
-    │   │   ├── Product_Pages/          # Category and individual product pages
-    │   │   │   ├── Coffee/             # Coffee category pages
-    │   │   │   ├── Non_Coffee/         # Non-coffee category pages
-    │   │   │   ├── Secret_Menu/        # Secret menu category pages
-    │   │   │   ├── Pastries/           # Pastries category pages
-    │   │   │   ├── Takoyaki/           # Takoyaki pages
-    │   │   │   └── Ramen/              # Ramen pages
+    │   │   ├── Webpage_Functions/      # JavaScript functionality
+    │   │   │   ├── AdminProfile.js
+    │   │   │   ├── Cart.js
+    │   │   │   ├── CheckOut.js
+    │   │   │   ├── CompletedOrders.js
+    │   │   │   ├── firebase-config.js
+    │   │   │   ├── Inventory.js
+    │   │   │   ├── InventoryDashboard.js
+    │   │   │   ├── LogIn.js
+    │   │   │   ├── Menu.js
+    │   │   │   ├── OrderHistory.js
+    │   │   │   ├── OrderManagement.js
+    │   │   │   ├── PendingOrders.js
+    │   │   │   ├── Profile.js
+    │   │   │   ├── SalesDashboard.js
+    │   │   │   ├── SalesReport.js
+    │   │   │   └── SignUp.js
+    │   │   │
     │   │   └── Webpage_Sections/       # Main application sections
-    │   │       ├── Home.html           # Customer home page
-    │   │       ├── Menu.html           # Menu browsing
-    │   │       ├── Cart.html           # Shopping cart
-    │   │       ├── Checkout.html       # Order checkout
-    │   │       ├── Profile.html        # User profile
-    │   │       ├── PendingOrders.html  # Track orders
-    │   │       ├── OrderHistory.html   # Past orders
-    │   │       └── Admin_Sections/     # Admin portal
-    │   │           ├── AdminProfile.html
-    │   │           ├── inventory.html
-    │   │           └── dashboard.html
-    │   └── Webpage_Functions/          # JavaScript functionality
-    │       ├── firebase-config.js      # Firebase configuration
-    │       ├── SignUp.js               # User registration
-    │       ├── LogIn.js                # User authentication
-    │       ├── Profile.js              # Profile management
-    │       ├── Menu.js                 # Menu functionality
-    │       ├── Cart.js                 # Cart operations
-    │       ├── Checkout.js             # Checkout process
-    │       └── inventory.js            # Inventory management
-    ├── Webpage_Style_Sheet/            # CSS styling
-    │   ├── Webpage_Style_Sheet.css     # Global styles
-    │   ├── profile.css                 # Profile page styles
-    │   ├── inventory.css               # Inventory styles
-    │   └── [other category styles]     # Category-specific styles
-    └── Webpage_Images_&_Icons/         # Visual assets
-        ├── Interface_Images/           # UI elements, brand logo
-        ├── Product_Icons/              # Category thumbnails
-        └── [category folders]/         # Product-specific images
+    │   │       ├── Admin_Sections/     # Admin portal
+    │   │       │   ├── AdminProfile.html
+    │   │       │   ├── CompletedOrders.html
+    │   │       │   ├── Inventory.html
+    │   │       │   ├── InventoryDashboard.html
+    │   │       │   ├── OrderManagement.html
+    │   │       │   ├── SalesDashboard.html
+    │   │       │   └── SalesReport.html
+    │   │       ├── About.html
+    │   │       ├── Cart.html
+    │   │       ├── CheckOut.html
+    │   │       ├── Contacts.html
+    │   │       ├── Home.html
+    │   │       ├── OrderHistory.html
+    │   │       ├── PendingOrders.html
+    │   │       ├── Profile.html
+    │   │       └── SignUp.html
+    │   │
+    │   ├── Webpage_Style_Sheet/        # CSS styling
+    │       ├── admin.css
+    │       ├── inventory.css
+    │       ├── profile.css
+    │       └── Webpage_Style_Sheet.css # Global styles
+    ├── Webpage_Fonts/              # Custom fonts
+    │   ├── Intro-Light.otf
+    │   ├── IntroRustBook-Trial-FillG.ttf
+    │   └── IntroRustL-Trial-Line.ttf
+    ├── Webpage_Images_&_Icons/     # Visual assets
+        └── Button_Icons/           # UI button icons
+        └── Interface_Images/       # Brand logo, graphics
+        └── Product_Icons/          # Category thumbnails
 ```
 
 ---
