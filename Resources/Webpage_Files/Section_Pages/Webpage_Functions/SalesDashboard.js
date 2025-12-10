@@ -122,6 +122,8 @@ function drawTopSellingChart(productSales) {
     }
     const sorted = Object.entries(productSales).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
+    const responsiveFontSize = Math.max(8, Math.min(12, window.innerWidth * 0.01));
+
     chartInstances.topSellingChart = new Chart(document.getElementById("topSellingChart"), {
         type: "bar",
         data: {
@@ -132,7 +134,36 @@ function drawTopSellingChart(productSales) {
                 backgroundColor: "#382719ff"
             }]
         },
-        options: { indexAxis: "y" }
+        options: { 
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {  
+                legend: {
+                    labels: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 
@@ -144,6 +175,8 @@ function drawLowestSellingChart(productSales) {
     // Sort ascending (lowest first) and take bottom 10
     const sorted = Object.entries(productSales).sort((a, b) => a[1] - b[1]).slice(0, 10);
 
+    const responsiveFontSize = Math.max(8, Math.min(12, window.innerWidth * 0.01));
+
     chartInstances.lowestSellingChart = new Chart(document.getElementById("lowestSellingChart"), {
         type: "bar",
         data: {
@@ -154,7 +187,36 @@ function drawLowestSellingChart(productSales) {
                 backgroundColor: "#8b330fff"
             }]
         },
-        options: { indexAxis: "y" }
+        options: { 
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {  
+                legend: {
+                    labels: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 function drawDailySalesChart(dailySales) {
@@ -164,6 +226,8 @@ function drawDailySalesChart(dailySales) {
     }
     const labels = Object.keys(dailySales).sort();
     const values = labels.map(k => dailySales[k]);
+
+    const responsiveFontSize = Math.max(8, Math.min(12, window.innerWidth * 0.01));
 
     chartInstances.dailySalesChart = new Chart(document.getElementById("dailySalesChart"), {
         type: "line",
@@ -177,6 +241,36 @@ function drawDailySalesChart(dailySales) {
                 fill: true,
                 tension: 0.2
             }]
+        },
+        options: { 
+            indexAxis: "x",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {  
+                legend: {
+                    labels: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            }
         }
     });
 }

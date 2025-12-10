@@ -187,7 +187,6 @@ function renderInventoryTable(inventory) {
     displayedCount = 0;
     
     const container = document.getElementById("inventory_table");
-    
     // Create initial table structure
     container.innerHTML = `
         <table class="admin_inventory_table">
@@ -197,6 +196,7 @@ function renderInventoryTable(inventory) {
                     <th>Category</th>
                     <th>Name</th>
                     <th>Size</th>
+                    <th>Stocks</th>
                     <th>Days Left</th>
                     <th>Action</th>
                 </tr>
@@ -248,6 +248,7 @@ function loadMoreItems() {
             <td>${item.category}</td>
             <td>${item.name}</td>
             <td>${item.size}</td>
+            <td>${item.stock}</td>
             <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
             <td>
                 <button class="update_button" data-doc-id="${item.docId}">Update</button>
@@ -654,11 +655,6 @@ async function confirmUpdateItem(docId) {
         return;
     }
 
-    if (stock < 1 || stock > 15) {
-        alert('Stock must be between 1 and 15!');
-        return;
-    }
-
     try {
         const docRef = doc(db, INVENTORY_COLLECTION, docId);
         await updateDoc(docRef, {
@@ -728,16 +724,6 @@ function setupInventoryQuantityInput(inputElement) {
         inputElement.addEventListener("keydown", (e) => {
             if (["e", "E", "+", "-", "."].includes(e.key)) {
                 e.preventDefault();
-            }
-        });
-        // Ensure value is valid on blur
-        inputElement.addEventListener("blur", (e) => {
-            let value = parseInt(e.target.value);
-            
-            if (e.target.value === "" || isNaN(value) || value < 1) {
-                e.target.value = 1;
-            } else if (value > 15) {
-                e.target.value = 15;
             }
         });
         // Set initial value to 1 if empty

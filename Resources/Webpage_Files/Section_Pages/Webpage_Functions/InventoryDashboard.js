@@ -78,6 +78,8 @@ function drawLowStockChart(inventory) {
     }
     const lowest15 = [...inventory].sort((a, b) => a.stock - b.stock).slice(0, 15);
 
+    const responsiveFontSize = Math.max(8, Math.min(12, window.innerWidth * 0.01));
+
     chartInstances.lowStockChart = new Chart(document.getElementById("lowStockChart"), {
         type: "bar",
         data: {
@@ -88,7 +90,36 @@ function drawLowStockChart(inventory) {
                 backgroundColor: "#382719ff"
             }]
         },
-        options: { indexAxis: "y" }
+        options: { 
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {  
+                legend: {
+                    labels: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 
@@ -120,6 +151,8 @@ function drawTopStockChart(inventory) {
     }
     const top15 = [...inventory].sort((a, b) => b.stock - a.stock).slice(0, 15);
 
+    const responsiveFontSize = Math.max(8, Math.min(12, window.innerWidth * 0.01));
+
     chartInstances.topStockChart = new Chart(document.getElementById("topStockChart"), {
         type: "bar",
         data: {
@@ -130,7 +163,36 @@ function drawTopStockChart(inventory) {
                 backgroundColor: "#382719ff"
             }]
         },
-        options: { indexAxis: "y" }
+        options: { 
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {  
+                legend: {
+                    labels: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        font: {
+                            size: responsiveFontSize
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 function drawValueChart(inventory) {
