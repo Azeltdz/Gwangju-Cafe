@@ -12,16 +12,6 @@
 
 ---
 
-## 🌟 Overview
-
-The Gwangju Café Website is a web-based application developed as the **Final Project for IT3101 (IT-314)**. It features an interactive café menu with categorized product pages, comprehensive user account management, and a complete online ordering system. The site is designed to be visually appealing, easy to navigate, and user-friendly—providing a realistic café-style browsing experience while replacing traditional ordering methods (social media messaging, text messages) with a standardized, efficient platform.
-
-Built with modern web technologies and Firebase backend, it provides seamless ordering experiences for customers and powerful inventory management tools for café owners.
-
-**🔗 Live Website:** [https://gwangju-cafe.vercel.app/](https://gwangju-cafe.vercel.app/)
-
----
-
 ## 📑 Table of Contents
 - [🌟 Overview](#-overview)
 - [✨ Key Features](#-key-features)
@@ -48,6 +38,18 @@ Built with modern web technologies and Firebase backend, it provides seamless or
 - [🙏 Acknowledgments](#-acknowledgments)
 - [📞 Support](#-support)
 - [🌐 Links](#-links)
+
+---
+
+## 🌟 Overview
+
+The Gwangju Café Website is a web-based application developed as the **Final Project for IT3101 (IT-314)**. It features an interactive café menu with categorized product pages, comprehensive user account management, and a complete online ordering system. The site is designed to be visually appealing, easy to navigate, and user-friendly—providing a realistic café-style browsing experience while replacing traditional ordering methods (social media messaging, text messages) with a standardized, efficient platform.
+
+Built with modern web technologies and Firebase backend, it provides seamless ordering experiences for customers and powerful inventory management tools for café owners.
+
+**🔗 Live Website:** [https://gwangju-cafe.vercel.app/](https://gwangju-cafe.vercel.app/)
+
+---
 
 ## ✨ Key Features
 
