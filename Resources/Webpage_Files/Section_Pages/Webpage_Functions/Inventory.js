@@ -316,6 +316,7 @@ function loadAllItems() {
             <td>${item.category}</td>
             <td>${item.name}</td>
             <td>${item.size}</td>
+            <td>${item.stock}</td>
             <td>${daysLeft <= 0 ? "Expired" : daysLeft}</td>
             <td>
                 <button class="update_button" data-doc-id="${item.docId}">Update</button>
@@ -407,7 +408,7 @@ function showUpdateItemPopup(currentData) {
                 <input type="number" id="update_price" class="styled_input">
 
                 <label>Stock Quantity:</label>
-                <input type="number" id="update_stock" class="styled_input quantity_input" min="1" max="15" value="${currentData.stock}">
+                <input type="number" id="update_stock" class="styled_input quantity_input" min="1" max="150" value="${currentData.stock}">
 
                 <label>Added Date:</label>
                 <input type="date" id="update_addedDate" class="styled_input" value="${currentData.addedDate}" readonly>
@@ -820,7 +821,7 @@ function showAddItemPopup() {
                 <input type="number" id="popup_price" class="styled_input">
 
                 <label>Stock Quantity:</label>
-                <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="15" value="1">
+                <input type="number" id="popup_stock" class="styled_input quantity_input" min="1" max="150" value="1">
 
                 <label>Added Date:</label>
                 <input type="date" id="popup_addedDate" class="styled_input" readonly>
@@ -1008,14 +1009,22 @@ async function confirmAddItem() {
         return;
     }
 
-    if (stock < 1 || stock > 15) {
-        alert('Stock must be between 1 and 15!');
-        return;
-    }
-
     const addedDate = new Date().toISOString().split('T')[0];
 
     try {
+        const inventorySnapshot = await getDocs(collection(db, INVENTORY_COLLECTION));
+        const existingItem = inventorySnapshot.docs.find(doc => {
+            const data = doc.data();
+            return data.category === category && 
+                    data.name === name && 
+                    data.size === size;
+        });
+
+        if (existingItem) {
+            alert('This item already exists in the inventory! Please update the existing item instead.');
+            return;
+        }
+
         await addDoc(collection(db, INVENTORY_COLLECTION), {
             id: Date.now(),
             name,
